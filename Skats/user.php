@@ -38,7 +38,7 @@ $irIelogojies = $auth !== null;
                 </section>
             <?php else: ?>
                 <section class="saturs">
-                    <h2>Visas pieejamās preces</h2>
+                    <h2>Reggistrējies lai redzēt preces</h2>
                 </section>
             <?php endif; ?>
         </div>
