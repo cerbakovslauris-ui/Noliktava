@@ -1,0 +1,101 @@
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family: Arial, sans-serif;
+	background: #f5f5f5;
+}
+
+main {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+}
+
+.back {
+    display: inline-block;
+    margin: 16px;
+    padding: 8px 12px;
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #111111;
+    text-decoration: none;
+}
+
+.reg {
+	width: 100%;
+	max-width: 460px;
+}
+
+.reg_teksts {
+	background: #ffffff;
+	border: 1px solid #dddddd;
+	border-radius: 10px;
+	padding: 24px;
+}
+
+.reg_teksts h1 {
+	margin-top: 0;
+	margin-bottom: 8px;
+	font-size: 26px;
+}
+
+.reg_teksts p {
+	margin-top: 0;
+	margin-bottom: 14px;
+	color: #555555;
+}
+
+.reg_teksts h3 {
+	margin: 12px 0 6px;
+	font-size: 14px;
+}
+
+.reg_teksts input {
+	width: 100%;
+	padding: 10px;
+	border: 1px solid #cccccc;
+	border-radius: 6px;
+	margin-bottom: 6px;
+}
+
+.reg_teksts button {
+	width: 100%;
+	margin-top: 12px;
+	padding: 10px;
+	border: 0;
+	border-radius: 6px;
+	background: #111111;
+	color: #ffffff;
+	cursor: pointer;
+}
+
+.reg_teksts button:hover {
+	background: #333333;
+}
+
+.reg_teksts a {
+	color: #111111;
+}
+
+.proles_drošiba {
+	padding: 10px;
+	border: 1px solid #e5e5e5;
+	border-radius: 6px;
+	background: #fafafa;
+	margin: 8px 0;
+}
+
+.parole-noteikums {
+	margin: 6px 0;
+	color: #666666;
+}
+
+.parole-noteikums.izpildits {
+	color: #1b7f2a;
+}
