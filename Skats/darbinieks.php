@@ -2,10 +2,6 @@
 require_once __DIR__ . '/../Includes/auth.inc.php';
 $auth = parbauditAutorizaciju('darbinieks');
 
-/*
-    Ja tavā projektā datubāzes pieslēguma fails saucas citādāk,
-    nomaini šo ceļu. Galvenais, lai beigās ir pieejams $pdo.
-*/
 if (!isset($pdo)) {
     $iespejamieDbFaili = [
         __DIR__ . '/../Includes/dbh.inc.php',
