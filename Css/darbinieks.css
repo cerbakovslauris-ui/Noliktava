@@ -1,0 +1,300 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    color: #111111;
+}
+
+.headers {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 90px;
+    padding: 20px 24px;
+    background: #ffffff;
+    border-bottom: 1px solid #dddddd;
+}
+
+.name h1 {
+    margin: 0;
+    font-family: "Cormorant Garamond", serif;
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-align: center;
+}
+
+.log_reg {
+    position: absolute;
+    top: 50%;
+    right: 24px;
+    display: flex;
+    gap: 12px;
+    transform: translateY(-50%);
+}
+
+.log_reg a,
+.user {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    border: 1px solid #111111;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #111111;
+    background: #ffffff;
+    font-size: 15px;
+}
+
+.log_reg a:hover {
+    background: #111111;
+    color: #ffffff;
+}
+
+.darbinieks-lapa,
+.admin-lapa {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+    padding: 24px;
+}
+
+.darbinieks-nav-bar,
+.admin-nav-bar {
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 12px;
+    padding: 18px;
+    height: fit-content;
+    position: sticky;
+    top: 16px;
+}
+
+.darbinieks-nav-bar h2,
+.admin-nav-bar h2 {
+    margin: 0 0 14px;
+    font-size: 20px;
+}
+
+.darbinieks-nav-bar ul,
+.admin-nav-bar ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 8px;
+}
+
+.darbinieks-nav-bar a,
+.admin-nav-bar a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #111111;
+    border: 1px solid transparent;
+    transition: 0.2s ease;
+}
+
+.darbinieks-nav-bar a:hover,
+.darbinieks-nav-bar a.active,
+.admin-nav-bar a:hover,
+.admin-nav-bar a.active {
+    background: #f4f4f4;
+    border-color: #cccccc;
+}
+
+.darbinieks-saturs,
+.admin-saturs {
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 12px;
+    padding: 20px;
+    min-height: 260px;
+}
+
+.darbinieks-panel,
+.admin-panel {
+    display: none;
+}
+
+.darbinieks-panel.active,
+.admin-panel.active {
+    display: block;
+}
+
+.darbinieks-panel h2,
+.admin-panel h2 {
+    margin: 0 0 10px;
+    font-size: 28px;
+}
+
+.darbinieks-panel p,
+.admin-panel p {
+    margin: 0 0 12px;
+    line-height: 1.5;
+}
+
+.forma-kaste,
+.tabula-kaste {
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 12px;
+    padding: 18px;
+    margin: 18px 0;
+}
+
+.forma-kaste h3,
+.tabula-kaste h3 {
+    margin: 0 0 14px;
+    font-size: 20px;
+}
+
+.forma-rinda {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+input,
+textarea,
+select,
+.status-select {
+    width: 100%;
+    min-height: 38px;
+    padding: 9px 10px;
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    background: #ffffff;
+    font-size: 14px;
+}
+
+textarea {
+    min-height: 86px;
+    resize: vertical;
+}
+
+.poga {
+    min-height: 38px;
+    padding: 9px 14px;
+    border: 1px solid #111111;
+    border-radius: 8px;
+    background: #111111;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.poga:hover {
+    background: #ffffff;
+    color: #111111;
+}
+
+.tabula {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    margin-top: 10px;
+}
+
+.tabula th,
+.tabula td {
+    padding: 10px 12px;
+    border: 1px solid #dddddd;
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+}
+
+.tabula th {
+    background: #f3f3f3;
+    font-weight: 700;
+}
+
+.tabula-kaste {
+    overflow-x: auto;
+}
+
+.edit-rinda {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.edit-form {
+    display: grid;
+    grid-template-columns: 1.2fr 1.5fr 90px 130px auto;
+    gap: 8px;
+    align-items: center;
+    flex: 1;
+}
+
+.small-input {
+    max-width: 90px;
+}
+
+.message-error {
+    padding: 10px 12px;
+    border: 1px solid #e2b4b4;
+    border-radius: 8px;
+    background: #fff2f2;
+    color: #8a1f1f;
+    margin-bottom: 12px;
+}
+
+@media (max-width: 900px) {
+    .darbinieks-lapa,
+    .admin-lapa {
+        grid-template-columns: 1fr;
+        padding: 16px;
+    }
+
+    .darbinieks-nav-bar,
+    .admin-nav-bar {
+        position: static;
+    }
+
+    .edit-form {
+        grid-template-columns: 1fr;
+    }
+
+    .log_reg {
+        position: static;
+        transform: none;
+        margin-top: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .headers {
+        flex-direction: column-reverse;
+    }
+}
+
+
+.poga-dzest {
+    border-color: #b42318;
+    background: #b42318;
+    color: #ffffff;
+}
+
+.poga-dzest:hover {
+    background: #ffffff;
+    color: #b42318;
+}

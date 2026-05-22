@@ -85,6 +85,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirectWithHash('noliktava');
         }
 
+        if ($action === 'delete_product') {
+            $id = (int)($_POST['id'] ?? 0);
+
+            if ($id <= 0) {
+                throw new Exception('Nav atrasta prece, kuru dzēst.');
+            }
+
+            $stmt = $pdo->prepare('DELETE FROM products WHERE id = ?');
+            $stmt->execute([$id]);
+            redirectWithHash('noliktava');
+        }
+
         if ($action === 'create_order') {
             $productId = (int)($_POST['product_id'] ?? 0);
             $quantity = (int)($_POST['quantity'] ?? 0);
@@ -144,7 +156,7 @@ $orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Darbinieks</title>
     <link rel="stylesheet" href="../Css/skats.css">
-    <link rel="stylesheet" href="../Css/admin.css">
+    <link rel="stylesheet" href="../Css/darbinieks.css?v=3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
@@ -301,15 +313,23 @@ $orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
                                 <tr>
                                     <td><?php echo (int)$product['id']; ?></td>
                                     <td>
-                                        <form class="edit-form" method="post">
-                                            <input type="hidden" name="action" value="edit_product">
-                                            <input type="hidden" name="id" value="<?php echo (int)$product['id']; ?>">
-                                            <input type="text" name="name" value="<?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>" required>
-                                            <input type="text" name="description" value="<?php echo htmlspecialchars((string)$product['description'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Apraksts">
-                                            <input class="small-input" type="number" name="quantity" min="0" value="<?php echo (int)$product['quantity']; ?>" required>
-                                            <input type="text" name="shelf_location" value="<?php echo htmlspecialchars((string)$product['shelf_location'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Plaukts">
-                                            <button class="poga" type="submit">Saglabāt</button>
-                                        </form>
+                                        <div class="edit-rinda">
+                                            <form class="edit-form" method="post">
+                                                <input type="hidden" name="action" value="edit_product">
+                                                <input type="hidden" name="id" value="<?php echo (int)$product['id']; ?>">
+                                                <input type="text" name="name" value="<?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>" required>
+                                                <input type="text" name="description" value="<?php echo htmlspecialchars((string)$product['description'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Apraksts">
+                                                <input class="small-input" type="number" name="quantity" min="0" value="<?php echo (int)$product['quantity']; ?>" required>
+                                                <input type="text" name="shelf_location" value="<?php echo htmlspecialchars((string)$product['shelf_location'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Plaukts">
+                                                <button class="poga" type="submit">Saglabāt</button>
+                                            </form>
+
+                                            <form method="post" onsubmit="return confirm('Vai tiešām dzēst šo preci?');">
+                                                <input type="hidden" name="action" value="delete_product">
+                                                <input type="hidden" name="id" value="<?php echo (int)$product['id']; ?>">
+                                                <button class="poga poga-dzest" type="submit">Dzēst</button>
+                                            </form>
+                                        </div>
                                     </td>
                                     <td><?php echo htmlspecialchars($product['created_at'], ENT_QUOTES, 'UTF-8'); ?></td>
                                 </tr>
