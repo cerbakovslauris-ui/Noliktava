@@ -1,0 +1,48 @@
+.admin-lapa {
+	display: grid;
+	grid-template-columns: 280px 1fr;
+	gap: 24px;
+	padding: 24px;
+}
+
+.admin-nav-bar {
+	background: #ffffff;
+	border: 1px solid #dddddd;
+	border-radius: 12px;
+	padding: 18px;
+	height: fit-content;
+	position: sticky;
+	top: 16px;
+}
+
+.admin-nav-bar h2 {
+	margin: 0 0 14px;
+	font-size: 20px;
+}
+
+.admin-nav-bar ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: grid;
+	gap: 8px;
+}
+
+.admin-nav-bar a {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 12px;
+	border-radius: 8px;
+	text-decoration: none;
+	color: #111111;
+	border: 1px solid transparent;
+	transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-nav-bar a:hover,
+.admin-nav-bar a.active {
+	background: #f4f4f4;
+	border-color: #cccccc;
+}
+
