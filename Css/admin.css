@@ -46,3 +46,116 @@
 	border-color: #cccccc;
 }
 
+.admin-saturs {
+	background: #ffffff;
+	border: 1px solid #dddddd;
+	border-radius: 12px;
+	padding: 20px;
+	min-height: 260px;
+}
+
+.admin-panel {
+	display: none;
+}
+
+.admin-panel.active {
+	display: block;
+}
+
+.admin-panel h2 {
+	margin: 0 0 10px;
+	font-size: 28px;
+}
+
+.admin-panel p {
+	margin: 0;
+	line-height: 1.5;
+}
+
+.admin-tabula-wrap {
+	margin-top: 12px;
+	overflow-x: auto;
+}
+
+.admin-tabula {
+	width: 100%;
+	border-collapse: collapse;
+	background: #ffffff;
+}
+
+.admin-tabula th,
+.admin-tabula td {
+	padding: 10px 12px;
+	border: 1px solid #dddddd;
+	text-align: left;
+	font-size: 14px;
+}
+
+.admin-tabula th {
+	background: #f3f3f3;
+	font-weight: 700;
+}
+
+.admin-kluda {
+	padding: 10px 12px;
+	border: 1px solid #e2b4b4;
+	border-radius: 8px;
+	background: #fff2f2;
+	color: #8a1f1f;
+}
+
+.admin-ok-zina {
+	padding: 10px 12px;
+	border: 1px solid #b8dfc2;
+	border-radius: 8px;
+	background: #effaf2;
+	color: #156131;
+	margin-bottom: 12px;
+}
+
+.admin-darbibas {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.admin-form-inline {
+	display: inline-flex;
+	gap: 8px;
+	align-items: center;
+	margin: 0;
+}
+
+.admin-form-inline select {
+	height: 34px;
+	padding: 0 8px;
+	border: 1px solid #cccccc;
+	border-radius: 6px;
+	background: #ffffff;
+}
+
+.admin-poga {
+	height: 34px;
+	padding: 0 10px;
+	border-radius: 6px;
+	border: 1px solid #111111;
+	background: #ffffff;
+	cursor: pointer;
+}
+
+.admin-poga-mainit:hover {
+	background: #f4f4f4;
+}
+
+.admin-poga-dzest {
+	border-color: #c93c3c;
+	color: #9b2020;
+}
+
+.admin-poga-dzest:hover {
+	background: #fff1f1;
+}
+
+
+
