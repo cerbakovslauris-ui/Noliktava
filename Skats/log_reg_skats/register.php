@@ -18,13 +18,8 @@
                 <form action="../../Includes/log_reg_inc/reg_inc.php" method="POST">
                     <h3>Lietotājvārds vai vārds</h3>
                     <input type="text" name="lietotajvards" placeholder='Lietotājvārds vai vārds' required>
-                    <h3>Loma</h3>
-                    <select name="role_id" required>
-                        <option value="1">Administrators</option>
-                        <option value="2">Noliktavas darbinieks</option>
-                        <option value="3">Plauktu kārtotājs</option>
-                        <option value="4">Lietotājs</option>
-                    </select>
+
+
                     <h3>Parole</h3>
                     <input type="password" id="parole" name="parole" placeholder='Parole' required>
                         <div class="proles_drošiba">
