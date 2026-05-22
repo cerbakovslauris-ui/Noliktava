@@ -2,11 +2,143 @@
 require_once __DIR__ . '/../Includes/auth.inc.php';
 $auth = parbauditAutorizaciju('darbinieks');
 
-$lietotajaVards = (string) $auth['vards'];
-$lietotajaVardsRedzams = $lietotajaVards;
+/*
+    Ja tavā projektā datubāzes pieslēguma fails saucas citādāk,
+    nomaini šo ceļu. Galvenais, lai beigās ir pieejams $pdo.
+*/
+if (!isset($pdo)) {
+    $iespejamieDbFaili = [
+        __DIR__ . '/../Includes/dbh.inc.php',
+        __DIR__ . '/../Includes/db.inc.php',
+        __DIR__ . '/../Includes/database.inc.php',
+        __DIR__ . '/../Includes/config.php'
+    ];
+
+    foreach ($iespejamieDbFaili as $dbFails) {
+        if (file_exists($dbFails)) {
+            require_once $dbFails;
+            break;
+        }
+    }
+}
+
+if (!isset($pdo) || !($pdo instanceof PDO)) {
+    die('Nav atrasts datubāzes pieslēgums. Pārbaudi, vai Includes mapē ir dbh.inc.php un tajā ir $pdo.');
+}
+
+$lietotajaVards = (string)($auth['vards'] ?? $auth['username'] ?? 'Darbinieks');
+$lietotajaId = (int)($auth['id'] ?? $auth['user_id'] ?? 0);
+
+$zina = '';
+$zinaTips = 'success';
+
+function cleanText($value) {
+    return trim((string)$value);
+}
+
+function redirectWithHash($hash) {
+    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '#') . '#' . $hash);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    try {
+        if ($action === 'add_product') {
+            $name = cleanText($_POST['name'] ?? '');
+            $description = cleanText($_POST['description'] ?? '');
+            $quantity = (int)($_POST['quantity'] ?? 0);
+            $shelfLocation = cleanText($_POST['shelf_location'] ?? '');
+
+            if ($name === '') {
+                throw new Exception('Preces nosaukums nedrīkst būt tukšs.');
+            }
+            if ($quantity < 0) {
+                throw new Exception('Daudzums nevar būt negatīvs.');
+            }
+
+            $stmt = $pdo->prepare('INSERT INTO products (name, description, quantity, shelf_location) VALUES (?, ?, ?, ?)');
+            $stmt->execute([$name, $description, $quantity, $shelfLocation]);
+            redirectWithHash('noliktava');
+        }
+
+        if ($action === 'edit_product') {
+            $id = (int)($_POST['id'] ?? 0);
+            $name = cleanText($_POST['name'] ?? '');
+            $description = cleanText($_POST['description'] ?? '');
+            $quantity = (int)($_POST['quantity'] ?? 0);
+            $shelfLocation = cleanText($_POST['shelf_location'] ?? '');
+
+            if ($id <= 0) {
+                throw new Exception('Nav atrasta prece, kuru rediģēt.');
+            }
+            if ($name === '') {
+                throw new Exception('Preces nosaukums nedrīkst būt tukšs.');
+            }
+            if ($quantity < 0) {
+                throw new Exception('Daudzums nevar būt negatīvs.');
+            }
+
+            $stmt = $pdo->prepare('UPDATE products SET name = ?, description = ?, quantity = ?, shelf_location = ? WHERE id = ?');
+            $stmt->execute([$name, $description, $quantity, $shelfLocation, $id]);
+            redirectWithHash('noliktava');
+        }
+
+        if ($action === 'create_order') {
+            $productId = (int)($_POST['product_id'] ?? 0);
+            $quantity = (int)($_POST['quantity'] ?? 0);
+
+            if ($productId <= 0) {
+                throw new Exception('Izvēlies preci pasūtījumam.');
+            }
+            if ($quantity <= 0) {
+                throw new Exception('Pasūtījuma daudzumam jābūt lielākam par 0.');
+            }
+            if ($lietotajaId <= 0) {
+                throw new Exception('Nav atrasts darbinieka lietotāja ID.');
+            }
+
+            $stmt = $pdo->prepare('INSERT INTO orders (product_id, user_id, quantity, status) VALUES (?, ?, ?, ?)');
+            $stmt->execute([$productId, $lietotajaId, $quantity, 'jauns']);
+            redirectWithHash('pasutijumi');
+        }
+
+        if ($action === 'update_order_status') {
+            $orderId = (int)($_POST['order_id'] ?? 0);
+            $status = cleanText($_POST['status'] ?? '');
+            $allowedStatuses = ['jauns', 'pieņemts', 'izpildīts', 'atcelts'];
+
+            if ($orderId <= 0) {
+                throw new Exception('Nav atrasts pasūtījums.');
+            }
+            if (!in_array($status, $allowedStatuses, true)) {
+                throw new Exception('Nederīgs pasūtījuma statuss.');
+            }
+
+            $stmt = $pdo->prepare('UPDATE orders SET status = ? WHERE id = ?');
+            $stmt->execute([$status, $orderId]);
+            redirectWithHash('pasutijumi');
+        }
+    } catch (Exception $e) {
+        $zina = $e->getMessage();
+        $zinaTips = 'error';
+    }
+}
+
+$products = $pdo->query('SELECT * FROM products ORDER BY id DESC')->fetchAll(PDO::FETCH_ASSOC);
+
+$orderStmt = $pdo->query('
+    SELECT o.id, o.quantity, o.status, o.created_at, p.name AS product_name, u.username
+    FROM orders o
+    JOIN products p ON p.id = o.product_id
+    JOIN users u ON u.id = o.user_id
+    ORDER BY o.id DESC
+');
+$orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="lv">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,11 +146,75 @@ $lietotajaVardsRedzams = $lietotajaVards;
     <link rel="stylesheet" href="../Css/skats.css">
     <link rel="stylesheet" href="../Css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .forma-kaste, .tabula-kaste {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 18px;
+            margin: 18px 0;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+        .forma-rinda {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .forma-kaste input, .forma-kaste textarea, .forma-kaste select, .status-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        .forma-kaste textarea { min-height: 80px; resize: vertical; }
+        .poga {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            cursor: pointer;
+            background: #222;
+            color: #fff;
+        }
+        .poga:hover { opacity: 0.85; }
+        .tabula {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .tabula th, .tabula td {
+            border-bottom: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+        .tabula th { background: #f3f3f3; }
+        .small-input { max-width: 90px; }
+        .message-error {
+            background: #ffe3e3;
+            color: #8a0000;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .edit-form {
+            display: grid;
+            grid-template-columns: 1.2fr 1.5fr 80px 120px 90px;
+            gap: 8px;
+            align-items: start;
+        }
+        @media (max-width: 900px) {
+            .edit-form { grid-template-columns: 1fr; }
+            .tabula { font-size: 14px; }
+        }
+    </style>
 </head>
 <body>
     <header class="headers">
         <div class="log_reg">
-            <span class="user" title="<?php echo htmlspecialchars($lietotajaVards, ENT_QUOTES, 'UTF-8'); ?>"><i class="fa fa-user" aria-hidden="true"></i><?php echo htmlspecialchars($lietotajaVardsRedzams, ENT_QUOTES, 'UTF-8'); ?></span>
+            <span class="user" title="<?php echo htmlspecialchars($lietotajaVards, ENT_QUOTES, 'UTF-8'); ?>">
+                <i class="fa fa-user" aria-hidden="true"></i><?php echo htmlspecialchars($lietotajaVards, ENT_QUOTES, 'UTF-8'); ?>
+            </span>
             <a href="../Includes/log_reg_inc/logout_inc.php"><i class="fa fa-sign-out"></i>Izlogoties</a>
         </div>
         <div class="name">
@@ -39,19 +235,158 @@ $lietotajaVardsRedzams = $lietotajaVards;
         </aside>
 
         <section class="admin-saturs" aria-live="polite">
+            <?php if ($zina !== ''): ?>
+                <div class="message-error"><?php echo htmlspecialchars($zina, ENT_QUOTES, 'UTF-8'); ?></div>
+            <?php endif; ?>
+
             <article id="pasutijumi" class="admin-panel active" data-panel>
                 <h2>Pasūtījumi</h2>
-                <p>Šeit vari skatīt un pārvaldīt aktuālos pasūtījumus.</p>
+                <p>Darbinieks var izveidot pasūtījumu un mainīt tā statusu.</p>
+
+                <div class="forma-kaste">
+                    <h3>Izveidot jaunu pasūtījumu</h3>
+                    <form method="post">
+                        <input type="hidden" name="action" value="create_order">
+                        <div class="forma-rinda">
+                            <div>
+                                <label>Prece</label>
+                                <select name="product_id" required>
+                                    <option value="">Izvēlies preci</option>
+                                    <?php foreach ($products as $product): ?>
+                                        <option value="<?php echo (int)$product['id']; ?>">
+                                            <?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>
+                                            — atlikums: <?php echo (int)$product['quantity']; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Daudzums</label>
+                                <input type="number" name="quantity" min="1" required>
+                            </div>
+                        </div>
+                        <button class="poga" type="submit">Izveidot pasūtījumu</button>
+                    </form>
+                </div>
+
+                <div class="tabula-kaste">
+                    <h3>Pasūtījumu saraksts</h3>
+                    <table class="tabula">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Prece</th>
+                                <th>Daudzums</th>
+                                <th>Darbinieks</th>
+                                <th>Statuss</th>
+                                <th>Izveidots</th>
+                                <th>Darbība</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($orders)): ?>
+                                <tr><td colspan="7">Pasūtījumu vēl nav.</td></tr>
+                            <?php endif; ?>
+                            <?php foreach ($orders as $order): ?>
+                                <tr>
+                                    <td><?php echo (int)$order['id']; ?></td>
+                                    <td><?php echo htmlspecialchars($order['product_name'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td><?php echo (int)$order['quantity']; ?></td>
+                                    <td><?php echo htmlspecialchars($order['username'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td><?php echo htmlspecialchars($order['status'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td><?php echo htmlspecialchars($order['created_at'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td>
+                                        <form method="post">
+                                            <input type="hidden" name="action" value="update_order_status">
+                                            <input type="hidden" name="order_id" value="<?php echo (int)$order['id']; ?>">
+                                            <select class="status-select" name="status">
+                                                <?php foreach (['jauns', 'pieņemts', 'izpildīts', 'atcelts'] as $status): ?>
+                                                    <option value="<?php echo $status; ?>" <?php echo $order['status'] === $status ? 'selected' : ''; ?>>
+                                                        <?php echo $status; ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <button class="poga" type="submit">Mainīt</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </article>
 
             <article id="noliktava" class="admin-panel" data-panel>
                 <h2>Noliktava</h2>
-                <p>Noliktavas preču saraksts un vadība.</p>
+                <p>Darbinieks var pievienot jaunas preces, rediģēt esošās un skatīt visu preču sarakstu.</p>
+
+                <div class="forma-kaste">
+                    <h3>Pievienot preci</h3>
+                    <form method="post">
+                        <input type="hidden" name="action" value="add_product">
+                        <div class="forma-rinda">
+                            <div>
+                                <label>Nosaukums</label>
+                                <input type="text" name="name" required>
+                            </div>
+                            <div>
+                                <label>Daudzums</label>
+                                <input type="number" name="quantity" min="0" value="0" required>
+                            </div>
+                            <div>
+                                <label>Plaukta vieta</label>
+                                <input type="text" name="shelf_location" placeholder="Piem., A-12">
+                            </div>
+                        </div>
+                        <label>Apraksts</label>
+                        <textarea name="description" placeholder="Preces apraksts"></textarea>
+                        <br><br>
+                        <button class="poga" type="submit">Pievienot preci</button>
+                    </form>
+                </div>
+
+                <div class="tabula-kaste">
+                    <h3>Preču saraksts</h3>
+                    <table class="tabula">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Rediģēšana</th>
+                                <th>Izveidots</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($products)): ?>
+                                <tr><td colspan="3">Preču vēl nav.</td></tr>
+                            <?php endif; ?>
+                            <?php foreach ($products as $product): ?>
+                                <tr>
+                                    <td><?php echo (int)$product['id']; ?></td>
+                                    <td>
+                                        <form class="edit-form" method="post">
+                                            <input type="hidden" name="action" value="edit_product">
+                                            <input type="hidden" name="id" value="<?php echo (int)$product['id']; ?>">
+                                            <input type="text" name="name" value="<?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>" required>
+                                            <input type="text" name="description" value="<?php echo htmlspecialchars((string)$product['description'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Apraksts">
+                                            <input class="small-input" type="number" name="quantity" min="0" value="<?php echo (int)$product['quantity']; ?>" required>
+                                            <input type="text" name="shelf_location" value="<?php echo htmlspecialchars((string)$product['shelf_location'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Plaukts">
+                                            <button class="poga" type="submit">Saglabāt</button>
+                                        </form>
+                                    </td>
+                                    <td><?php echo htmlspecialchars($product['created_at'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </article>
 
             <article id="atskaites" class="admin-panel" data-panel>
                 <h2>Atskaites</h2>
-                <p>Skatīt darbības atskaites un statistiku.</p>
+                <div class="tabula-kaste">
+                    <p>Kopā preces: <strong><?php echo count($products); ?></strong></p>
+                    <p>Kopā pasūtījumi: <strong><?php echo count($orders); ?></strong></p>
+                </div>
             </article>
         </section>
     </main>
