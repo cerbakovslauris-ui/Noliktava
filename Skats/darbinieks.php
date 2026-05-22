@@ -146,68 +146,6 @@ $orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="../Css/skats.css">
     <link rel="stylesheet" href="../Css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <style>
-        .forma-kaste, .tabula-kaste {
-            background: #ffffff;
-            border-radius: 14px;
-            padding: 18px;
-            margin: 18px 0;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-        }
-        .forma-rinda {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        .forma-kaste input, .forma-kaste textarea, .forma-kaste select, .status-select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
-        }
-        .forma-kaste textarea { min-height: 80px; resize: vertical; }
-        .poga {
-            border: none;
-            border-radius: 8px;
-            padding: 10px 14px;
-            cursor: pointer;
-            background: #222;
-            color: #fff;
-        }
-        .poga:hover { opacity: 0.85; }
-        .tabula {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        .tabula th, .tabula td {
-            border-bottom: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-            vertical-align: top;
-        }
-        .tabula th { background: #f3f3f3; }
-        .small-input { max-width: 90px; }
-        .message-error {
-            background: #ffe3e3;
-            color: #8a0000;
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-        .edit-form {
-            display: grid;
-            grid-template-columns: 1.2fr 1.5fr 80px 120px 90px;
-            gap: 8px;
-            align-items: start;
-        }
-        @media (max-width: 900px) {
-            .edit-form { grid-template-columns: 1fr; }
-            .tabula { font-size: 14px; }
-        }
-    </style>
 </head>
 <body>
     <header class="headers">
