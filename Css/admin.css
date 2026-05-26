@@ -1,175 +1,516 @@
+:root {
+    --bg: #f4f6fb;
+    --card: rgba(255, 255, 255, 0.96);
+    --text: #111827;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --primary-soft: #dbeafe;
+    --danger: #ef4444;
+    --danger-dark: #dc2626;
+    --danger-soft: #fee2e2;
+    --success: #16a34a;
+    --success-soft: #dcfce7;
+    --radius: 22px;
+    --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
 .admin-lapa {
-	display: grid;
-	grid-template-columns: 280px 1fr;
-	gap: 24px;
-	padding: 24px;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+    width: min(1400px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 28px 0;
 }
 
 .admin-nav-bar {
-	background: #ffffff;
-	border: 1px solid #dddddd;
-	border-radius: 12px;
-	padding: 18px;
-	height: fit-content;
-	position: sticky;
-	top: 16px;
+    position: sticky;
+    top: 116px;
+    height: fit-content;
+    padding: 22px;
+    border: 1px solid rgba(229, 231, 235, 0.95);
+    border-radius: var(--radius);
+    background: var(--card);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
 }
 
 .admin-nav-bar h2 {
-	margin: 0 0 14px;
-	font-size: 20px;
+    margin: 0 0 18px;
+    color: var(--text);
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
 }
 
 .admin-nav-bar ul {
-	margin: 0;
-	padding: 0;
-	list-style: none;
-	display: grid;
-	gap: 8px;
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
 .admin-nav-bar a {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	padding: 10px 12px;
-	border-radius: 8px;
-	text-decoration: none;
-	color: #111111;
-	border: 1px solid transparent;
-	transition: background-color 0.2s ease, border-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 46px;
+    padding: 11px 13px;
+    border: 1px solid transparent;
+    border-radius: 15px;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 800;
+    text-decoration: none;
+    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.admin-nav-bar a i {
+    width: 18px;
+    color: var(--primary);
+    text-align: center;
 }
 
 .admin-nav-bar a:hover,
 .admin-nav-bar a.active {
-	background: #f4f4f4;
-	border-color: #cccccc;
+    color: var(--primary-dark);
+    border-color: #bfdbfe;
+    background: var(--primary-soft);
 }
 
 .admin-saturs {
-	background: #ffffff;
-	border: 1px solid #dddddd;
-	border-radius: 12px;
-	padding: 20px;
-	min-height: 260px;
+    min-height: 520px;
+    padding: 28px;
+    border: 1px solid rgba(229, 231, 235, 0.95);
+    border-radius: 26px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
 }
 
 .admin-panel {
-	display: none;
+    display: none;
 }
 
 .admin-panel.active {
-	display: block;
+    display: block;
 }
 
 .admin-panel h2 {
-	margin: 0 0 10px;
-	font-size: 28px;
+    margin: 0 0 10px;
+    color: var(--text);
+    font-size: clamp(30px, 4vw, 42px);
+    font-weight: 950;
+    letter-spacing: -1.2px;
+}
+
+.admin-panel h3 {
+    margin: 0 0 18px;
+    color: var(--text);
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: -0.6px;
 }
 
 .admin-panel p {
-	margin: 0;
-	line-height: 1.5;
+    margin: 0 0 18px;
+    color: var(--muted);
+    line-height: 1.65;
 }
 
 .admin-tabula-wrap {
-	margin-top: 12px;
-	overflow-x: auto;
+    margin-top: 22px;
+    padding: 22px;
+    overflow-x: auto;
+    border: 1px solid rgba(229, 231, 235, 0.95);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.04);
 }
 
 .admin-tabula {
-	width: 100%;
-	border-collapse: collapse;
-	background: #ffffff;
+    width: 100%;
+    min-width: 820px;
+    overflow: hidden;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: #ffffff;
 }
 
 .admin-tabula th,
 .admin-tabula td {
-	padding: 10px 12px;
-	border: 1px solid #dddddd;
-	text-align: left;
-	font-size: 14px;
+    padding: 16px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    text-align: left;
+    vertical-align: middle;
+    font-size: 14px;
 }
 
 .admin-tabula th {
-	background: #f3f3f3;
-	font-weight: 700;
+    background: #f8fafc;
+    color: #1f2937;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
 }
 
-.admin-kluda {
-	padding: 10px 12px;
-	border: 1px solid #e2b4b4;
-	border-radius: 8px;
-	background: #fff2f2;
-	color: #8a1f1f;
+.admin-tabula tr:last-child th,
+.admin-tabula tr:last-child td {
+    border-bottom: 0;
 }
 
-.admin-ok-zina {
-	padding: 10px 12px;
-	border: 1px solid #b8dfc2;
-	border-radius: 8px;
-	background: #effaf2;
-	color: #156131;
-	margin-bottom: 12px;
+.admin-tabula tbody tr:hover {
+    background: #f9fbff;
 }
 
+.admin-form-inline,
 .admin-darbibas {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	align-items: center;
+    margin: 0;
+    gap: 10px;
+    align-items: center;
 }
 
 .admin-form-inline {
-	display: inline-flex;
-	gap: 8px;
-	align-items: center;
-	margin: 0;
+    display: flex;
 }
 
-.admin-form-inline select {
-	height: 34px;
-	padding: 0 8px;
-	border: 1px solid #cccccc;
-	border-radius: 6px;
-	background: #ffffff;
+.admin-darbibas {
+    display: flex;
+    flex-wrap: nowrap;
 }
 
-.admin-form-inline input {
-	height: 34px;
-	padding: 0 8px;
-	border: 1px solid #cccccc;
-	border-radius: 6px;
-	background: #ffffff;
-}
-
-.admin-tabula textarea,
+.admin-form-inline input,
+.admin-form-inline select,
 .admin-tabula input,
-.admin-tabula select {
-	max-width: 100%;
+.admin-tabula select,
+.admin-tabula textarea {
+    min-height: 42px;
+    width: 100%;
+    max-width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 13px;
+    outline: none;
+    background: #ffffff;
+    color: var(--text);
+    font-size: 14px;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.admin-tabula textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.admin-form-inline input:focus,
+.admin-form-inline select:focus,
+.admin-tabula input:focus,
+.admin-tabula select:focus,
+.admin-tabula textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
+}
+
+.admin-tabula label {
+    color: #374151;
+    font-weight: 900;
 }
 
 .admin-poga {
-	height: 34px;
-	padding: 0 10px;
-	border-radius: 6px;
-	border: 1px solid #111111;
-	background: #ffffff;
-	cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 10px 15px;
+    border: 1px solid var(--primary);
+    border-radius: 13px;
+    background: var(--primary);
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: none !important;
+    transition: background 0.18s ease, border-color 0.18s ease, filter 0.18s ease;
+}
+
+.admin-poga:hover {
+    filter: brightness(1.03);
+    box-shadow: none !important;
 }
 
 .admin-poga-mainit:hover {
-	background: #f4f4f4;
+    border-color: var(--primary-dark);
+    background: var(--primary-dark);
 }
 
 .admin-poga-dzest {
-	border-color: #c93c3c;
-	color: #9b2020;
+    border-color: var(--danger);
+    background: var(--danger);
+    color: #ffffff;
 }
 
 .admin-poga-dzest:hover {
-	background: #fff1f1;
+    border-color: var(--danger-dark);
+    background: var(--danger-dark);
 }
 
+.admin-kluda,
+.admin-ok-zina {
+    padding: 13px 15px;
+    border-radius: 15px;
+    font-weight: 700;
+    line-height: 1.45;
+}
 
+.admin-kluda {
+    border: 1px solid #fecaca;
+    background: var(--danger-soft);
+    color: #991b1b;
+}
 
+.admin-ok-zina {
+    margin-bottom: 16px;
+    border: 1px solid #bbf7d0;
+    background: var(--success-soft);
+    color: #166534;
+}
+
+/* Izveidot lietotāju — visi lauki vienā rindā */
+.admin-create-user-form {
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) minmax(160px, 1fr) minmax(180px, 0.8fr) auto;
+    width: 100%;
+}
+
+/* Lietotāju tabula — sakārtotas rindas */
+.admin-lietotaji-tabula {
+    min-width: 980px;
+}
+
+.admin-lietotaji-tabula th:nth-child(1),
+.admin-lietotaji-tabula td:nth-child(1) {
+    width: 15%;
+}
+
+.admin-lietotaji-tabula th:nth-child(2),
+.admin-lietotaji-tabula td:nth-child(2) {
+    width: 15%;
+}
+
+.admin-lietotaji-tabula th:nth-child(3),
+.admin-lietotaji-tabula td:nth-child(3) {
+    width: 40%;
+}
+
+.admin-lietotaji-tabula th:nth-child(4),
+.admin-lietotaji-tabula td:nth-child(4) {
+    width: 30%;
+}
+
+.admin-user-edit-form {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) minmax(200px, 1fr) auto;
+    width: 100%;
+}
+
+.admin-user-actions {
+    display: grid;
+    grid-template-columns: minmax(170px, 1fr) auto auto;
+    width: 100%;
+}
+
+.admin-role-form {
+    display: contents;
+}
+
+/* Pievienot preces — vairs nav saspiesta tabula */
+.admin-add-product-table {
+    min-width: 0;
+    border: 0;
+    background: transparent;
+}
+
+.admin-add-product-table tbody {
+    display: grid;
+    gap: 14px;
+}
+
+.admin-add-product-table tr {
+    display: grid;
+    grid-template-columns: 180px minmax(260px, 420px);
+    align-items: center;
+    gap: 16px;
+    padding: 0;
+    background: transparent;
+}
+
+.admin-add-product-table td {
+    padding: 0;
+    border: 0;
+}
+
+.admin-add-product-table tr:last-child {
+    grid-template-columns: 180px minmax(260px, 420px);
+}
+
+.admin-add-product-table tr:last-child td {
+    grid-column: 2;
+}
+
+.admin-add-product-table textarea {
+    min-height: 90px;
+}
+
+/* Rediģēt preces — katra prece vienā glītā rindā */
+.admin-products-table {
+    min-width: 1040px;
+}
+
+.admin-products-table th:nth-child(1),
+.admin-products-table td:nth-child(1) {
+    width: 60px;
+    text-align: center;
+}
+
+.admin-products-table th:nth-child(2),
+.admin-products-table td:nth-child(2) {
+    width: auto;
+}
+
+.admin-products-table th:nth-child(3),
+.admin-products-table td:nth-child(3) {
+    width: 150px;
+}
+
+.admin-product-actions {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    width: 100%;
+}
+
+.admin-product-edit-form {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) minmax(180px, 1.2fr) 90px 120px auto;
+    width: 100%;
+}
+
+/* Atskaites 3 kolonnās */
+#atskaites .admin-tabula {
+    min-width: 0;
+    border: 0;
+    background: transparent;
+}
+
+#atskaites .admin-tabula tbody {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+#atskaites .admin-tabula tr {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: #ffffff;
+}
+
+#atskaites .admin-tabula th,
+#atskaites .admin-tabula td {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+#atskaites .admin-tabula th {
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+#atskaites .admin-tabula td {
+    color: var(--text);
+    font-size: 28px;
+    font-weight: 950;
+    letter-spacing: -0.8px;
+}
+
+@media (max-width: 1180px) {
+    .admin-lapa {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-nav-bar {
+        position: static;
+    }
+
+    .admin-nav-bar ul {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #atskaites .admin-tabula tbody {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .admin-lapa {
+        width: min(100% - 20px, 1400px);
+        padding: 16px 0;
+    }
+
+    .admin-saturs,
+    .admin-nav-bar,
+    .admin-tabula-wrap {
+        padding: 16px;
+        border-radius: 18px;
+    }
+
+    .admin-nav-bar ul,
+    #atskaites .admin-tabula tbody,
+    .admin-create-user-form,
+    .admin-user-edit-form,
+    .admin-user-actions,
+    .admin-product-actions,
+    .admin-product-edit-form,
+    .admin-add-product-table tr,
+    .admin-add-product-table tr:last-child {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-role-form {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+
+    .admin-form-inline,
+    .admin-darbibas {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .admin-add-product-table tr:last-child td {
+        grid-column: 1;
+    }
+
+    .admin-form-inline input,
+    .admin-form-inline select,
+    .admin-form-inline button,
+    .admin-poga {
+        width: 100%;
+    }
+}

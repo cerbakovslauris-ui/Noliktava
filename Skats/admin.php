@@ -120,7 +120,7 @@ try {
                 <h2>Lietotāji</h2>
                 <div class="admin-tabula-wrap">
                     <h3>Izveidot lietotāju</h3>
-                    <form method="post" action="../Includes/admin_inc/izveidot_user.php" class="admin-form-inline">
+                    <form method="post" action="../Includes/admin_inc/izveidot_user.php" class="admin-form-inline admin-create-user-form">
                         <input type="text" name="username" placeholder="Lietotājvārds" required>
                         <input type="password" name="password" placeholder="Parole" required>
                         <select name="role_id" aria-label="Izvēlēties lomu" required>
@@ -139,7 +139,7 @@ try {
                     <p>Šobrīd sistēmā nav neviena lietotāja.</p>
                 <?php else: ?>
                     <div class="admin-tabula-wrap">
-                        <table class="admin-tabula">
+                        <table class="admin-tabula admin-lietotaji-tabula">
                             <thead>
                                 <tr>
                                     <th>Lietotājvārds</th>
@@ -154,7 +154,7 @@ try {
                                         <td><?php echo htmlspecialchars((string) $lietotajs['username'], ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars((string) ($lietotajs['role_name'] ?? 'Nav norādīta'), ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td>
-                                            <form method="post" action="../Includes/admin_inc/rediget_user.php" class="admin-form-inline">
+                                            <form method="post" action="../Includes/admin_inc/rediget_user.php" class="admin-form-inline admin-user-edit-form">
                                                 <input type="hidden" name="lietotaja_id" value="<?php echo (int) $lietotajs['id']; ?>">
                                                 <input type="text" name="username" value="<?php echo htmlspecialchars((string) $lietotajs['username'], ENT_QUOTES, 'UTF-8'); ?>" required>
                                                 <input type="password" name="jauna_parole" placeholder="Jauna parole (nav obligāta)">
@@ -162,8 +162,8 @@ try {
                                             </form>
                                         </td>
                                         <td>
-                                            <div class="admin-darbibas">
-                                                <form method="post" action="../Includes/admin_inc/mainit_lomu.php" class="admin-form-inline">
+                                            <div class="admin-darbibas admin-user-actions">
+                                                <form method="post" action="../Includes/admin_inc/mainit_lomu.php" class="admin-form-inline admin-role-form">
                                                     <input type="hidden" name="lietotaja_id" value="<?php echo (int) $lietotajs['id']; ?>">
                                                     <select name="jauna_loma_id" aria-label="Izvēlēties jaunu lomu">
                                                         <?php foreach ($visasLomas as $loma): ?>
@@ -194,7 +194,7 @@ try {
                 <p>Šeit vari pievienot jaunu preci noliktavai.</p>
                 <div class="admin-tabula-wrap">
                     <form method="post" action="../Includes/admin_inc/add_produktu.php">
-                        <table class="admin-tabula">
+                        <table class="admin-tabula admin-add-product-table">
                             <tbody>
                                 <tr>
                                     <td><label for="add-name">Nosaukums</label></td>
@@ -230,7 +230,7 @@ try {
                     <p class="admin-kluda"><?php echo htmlspecialchars($produktuIeladesKluda, ENT_QUOTES, 'UTF-8'); ?></p>
                 <?php else: ?>
                     <div class="admin-tabula-wrap">
-                        <table class="admin-tabula">
+                        <table class="admin-tabula admin-products-table">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -246,8 +246,8 @@ try {
                                     <tr>
                                         <td><?php echo (int) $product['id']; ?></td>
                                         <td>
-                                            <div class="admin-darbibas">
-                                                <form method="post" action="../Includes/admin_inc/edit_produktu.php" class="admin-form-inline">
+                                            <div class="admin-darbibas admin-product-actions">
+                                                <form method="post" action="../Includes/admin_inc/edit_produktu.php" class="admin-form-inline admin-product-edit-form">
                                                     <input type="hidden" name="id" value="<?php echo (int) $product['id']; ?>">
                                                     <input type="text" name="name" value="<?php echo htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8'); ?>" required>
                                                     <input type="text" name="description" value="<?php echo htmlspecialchars((string) ($product['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" placeholder="Apraksts">

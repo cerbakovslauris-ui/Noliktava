@@ -13,16 +13,15 @@
     <main>
         <div class="login">
             <div class="log_teksts">
-                <h1>Laipni lūgti atpakaļ</h1>
-                <p>Pieteikties savā kontā, lai jūs būtu viens no mums.</p>
+                <h1>Ienākt</h1>
                 <form action="../../Includes/log_reg_inc/log_inc.php" method="POST">
-                    <h3>Lietotajvards</h3>
+                    <h3>Lietotajvārds</h3>
                     <input type="text" name="lietotajvards" placeholder='Lietotajvards' required>
                     <h3>Parole</h3>
                     <input type="password" name="parole" placeholder='Parole' required>   
                     <button type="submit"><i class="fa fa-sign-in"></i>Pieteikties</button>
                 </form>
-                <p>Nav konta? <a href="register.php">Registrēties</a></p>
+                <p>Nav konta? <a href="register.php">Reģistrēties</a></p>
             </div>
         </div>
     </main>

@@ -37,6 +37,51 @@ function redirectWithHash($hash) {
     exit;
 }
 
+/*
+    Plaukta vietas noteikumi:
+    - burts tikai no A līdz F
+    - numurs tikai no 1 līdz 30
+    - lietotājs drīkst ievadīt A12 vai A-12, bet sistēma saglabā kā A-12
+*/
+function normalizeShelfLocation($value) {
+    $value = strtoupper(trim((string)$value));
+    $value = str_replace(' ', '', $value);
+
+    if ($value === '') {
+        return '';
+    }
+
+    if (!preg_match('/^([A-F])-?([1-9]|[12][0-9]|30)$/', $value, $matches)) {
+        throw new Exception('Plaukta vietai jābūt no A līdz F un no 1 līdz 30, piemēram, A-1 vai F-30.');
+    }
+
+    return $matches[1] . '-' . $matches[2];
+}
+
+function restoreProductQuantity(PDO $pdo, int $productId, int $quantity): void {
+    $stmt = $pdo->prepare('UPDATE products SET quantity = quantity + ? WHERE id = ?');
+    $stmt->execute([$quantity, $productId]);
+}
+
+function reduceProductQuantity(PDO $pdo, int $productId, int $quantity): void {
+    $productStmt = $pdo->prepare('SELECT quantity FROM products WHERE id = ? FOR UPDATE');
+    $productStmt->execute([$productId]);
+    $product = $productStmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$product) {
+        throw new Exception('Izvēlētā prece nav atrasta.');
+    }
+
+    $availableQuantity = (int)$product['quantity'];
+
+    if ($quantity > $availableQuantity) {
+        throw new Exception('Noliktavā nav pietiekams preces daudzums. Pieejams: ' . $availableQuantity . '.');
+    }
+
+    $updateStmt = $pdo->prepare('UPDATE products SET quantity = quantity - ? WHERE id = ?');
+    $updateStmt->execute([$quantity, $productId]);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -45,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $name = cleanText($_POST['name'] ?? '');
             $description = cleanText($_POST['description'] ?? '');
             $quantity = (int)($_POST['quantity'] ?? 0);
-            $shelfLocation = cleanText($_POST['shelf_location'] ?? '');
+            $shelfLocation = normalizeShelfLocation($_POST['shelf_location'] ?? '');
 
             if ($name === '') {
                 throw new Exception('Preces nosaukums nedrīkst būt tukšs.');
@@ -64,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $name = cleanText($_POST['name'] ?? '');
             $description = cleanText($_POST['description'] ?? '');
             $quantity = (int)($_POST['quantity'] ?? 0);
-            $shelfLocation = cleanText($_POST['shelf_location'] ?? '');
+            $shelfLocation = normalizeShelfLocation($_POST['shelf_location'] ?? '');
 
             if ($id <= 0) {
                 throw new Exception('Nav atrasta prece, kuru rediģēt.');
@@ -93,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pasutijumuSkaits = (int)$parbaudeStmt->fetchColumn();
 
             if ($pasutijumuSkaits > 0) {
-                throw new Exception('Nevar dzēst preci, jo tai ir saistīti pasūtījumi. Vispirms sakārto pasūtījumus.');
+                throw new Exception('Nevar dzēst preci, jo tai ir saistīti pasūtījumi. Vispirms izdzēs vai atcel šīs preces pasūtījumus.');
             }
 
             $stmt = $pdo->prepare('DELETE FROM products WHERE id = ?');
@@ -115,28 +160,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Nav atrasts darbinieka lietotāja ID.');
             }
 
+            $pdo->beginTransaction();
+
+            reduceProductQuantity($pdo, $productId, $quantity);
+
             $stmt = $pdo->prepare('INSERT INTO orders (product_id, user_id, quantity, status) VALUES (?, ?, ?, ?)');
             $stmt->execute([$productId, $lietotajaId, $quantity, 'jauns']);
+
+            $pdo->commit();
             redirectWithHash('pasutijumi');
         }
 
         if ($action === 'update_order_status') {
             $orderId = (int)($_POST['order_id'] ?? 0);
-            $status = cleanText($_POST['status'] ?? '');
+            $newStatus = cleanText($_POST['status'] ?? '');
             $allowedStatuses = ['jauns', 'pieņemts', 'izpildīts', 'atcelts'];
 
             if ($orderId <= 0) {
                 throw new Exception('Nav atrasts pasūtījums.');
             }
-            if (!in_array($status, $allowedStatuses, true)) {
+            if (!in_array($newStatus, $allowedStatuses, true)) {
                 throw new Exception('Nederīgs pasūtījuma statuss.');
             }
 
+            $pdo->beginTransaction();
+
+            $orderStmt = $pdo->prepare('SELECT id, product_id, quantity, status FROM orders WHERE id = ? FOR UPDATE');
+            $orderStmt->execute([$orderId]);
+            $order = $orderStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$order) {
+                throw new Exception('Pasūtījums nav atrasts.');
+            }
+
+            $oldStatus = (string)$order['status'];
+            $productId = (int)$order['product_id'];
+            $quantity = (int)$order['quantity'];
+
+            /*
+                Ja pasūtījumu atceļ, preces tiek atgrieztas noliktavā.
+                Ja no "atcelts" pārslēdz atpakaļ uz aktīvu statusu, preces atkal tiek noņemtas no noliktavas.
+            */
+            if ($oldStatus !== 'atcelts' && $newStatus === 'atcelts') {
+                restoreProductQuantity($pdo, $productId, $quantity);
+            } elseif ($oldStatus === 'atcelts' && $newStatus !== 'atcelts') {
+                reduceProductQuantity($pdo, $productId, $quantity);
+            }
+
             $stmt = $pdo->prepare('UPDATE orders SET status = ? WHERE id = ?');
-            $stmt->execute([$status, $orderId]);
+            $stmt->execute([$newStatus, $orderId]);
+
+            $pdo->commit();
+            redirectWithHash('pasutijumi');
+        }
+
+        if ($action === 'delete_order') {
+            $orderId = (int)($_POST['order_id'] ?? 0);
+
+            if ($orderId <= 0) {
+                throw new Exception('Nav atrasts pasūtījums, kuru dzēst.');
+            }
+
+            $pdo->beginTransaction();
+
+            $orderStmt = $pdo->prepare('SELECT id, product_id, quantity, status FROM orders WHERE id = ? FOR UPDATE');
+            $orderStmt->execute([$orderId]);
+            $order = $orderStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$order) {
+                throw new Exception('Pasūtījums nav atrasts.');
+            }
+
+            /*
+                Dzēšot pasūtījumu, noliktavas atlikums jāatjauno,
+                ja pasūtījums vēl nebija atcelts.
+            */
+            if ((string)$order['status'] !== 'atcelts') {
+                restoreProductQuantity($pdo, (int)$order['product_id'], (int)$order['quantity']);
+            }
+
+            $deleteStmt = $pdo->prepare('DELETE FROM orders WHERE id = ?');
+            $deleteStmt->execute([$orderId]);
+
+            $pdo->commit();
             redirectWithHash('pasutijumi');
         }
     } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
         $zina = $e->getMessage();
         $zinaTips = 'error';
     }
@@ -145,13 +258,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $products = $pdo->query('SELECT * FROM products ORDER BY id DESC')->fetchAll(PDO::FETCH_ASSOC);
 
 $orderStmt = $pdo->query('
-    SELECT o.id, o.quantity, o.status, o.created_at, p.name AS product_name, u.username
+    SELECT o.id, o.product_id, o.quantity, o.status, o.created_at, p.name AS product_name, u.username
     FROM orders o
     JOIN products p ON p.id = o.product_id
     JOIN users u ON u.id = o.user_id
     ORDER BY o.id DESC
 ');
 $orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
+
+$report = [
+    'product_count' => count($products),
+    'total_stock_quantity' => 0,
+    'order_count' => count($orders),
+    'ordered_quantity_total' => 0,
+    'active_order_count' => 0,
+    'completed_order_count' => 0,
+    'cancelled_order_count' => 0,
+    'low_stock_count' => 0,
+    'used_shelves' => [],
+];
+
+foreach ($products as $product) {
+    $productQuantity = (int)$product['quantity'];
+    $report['total_stock_quantity'] += $productQuantity;
+
+    if ($productQuantity <= 5) {
+        $report['low_stock_count']++;
+    }
+
+    if (!empty($product['shelf_location'])) {
+        $report['used_shelves'][$product['shelf_location']] = true;
+    }
+}
+
+foreach ($orders as $order) {
+    $orderQuantity = (int)$order['quantity'];
+    $report['ordered_quantity_total'] += $orderQuantity;
+
+    if ($order['status'] === 'izpildīts') {
+        $report['completed_order_count']++;
+    } elseif ($order['status'] === 'atcelts') {
+        $report['cancelled_order_count']++;
+    } else {
+        $report['active_order_count']++;
+    }
+}
+
+$report['used_shelves_count'] = count($report['used_shelves']);
+
+$productReportStmt = $pdo->query('
+    SELECT
+        p.id,
+        p.name,
+        p.quantity AS stock_quantity,
+        p.shelf_location,
+        COALESCE(SUM(CASE WHEN o.status <> "atcelts" THEN o.quantity ELSE 0 END), 0) AS ordered_quantity,
+        COALESCE(SUM(CASE WHEN o.status = "izpildīts" THEN o.quantity ELSE 0 END), 0) AS completed_quantity
+    FROM products p
+    LEFT JOIN orders o ON o.product_id = p.id
+    GROUP BY p.id, p.name, p.quantity, p.shelf_location
+    ORDER BY p.name ASC
+');
+$productReport = $productReportStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="lv">
@@ -160,7 +328,7 @@ $orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Darbinieks</title>
     <link rel="stylesheet" href="../Css/skats.css">
-    <link rel="stylesheet" href="../Css/darbinieks.css?v=3">
+    <link rel="stylesheet" href="../Css/darbinieks.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
@@ -195,7 +363,7 @@ $orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
 
             <article id="pasutijumi" class="admin-panel active" data-panel>
                 <h2>Pasūtījumi</h2>
-                <p>Darbinieks var izveidot pasūtījumu un mainīt tā statusu.</p>
+                <p>Darbinieks var izveidot pasūtījumu, mainīt statusu un dzēst cilvēku pasūtījumus.</p>
 
                 <div class="forma-kaste">
                     <h3>Izveidot jaunu pasūtījumu</h3>
@@ -207,7 +375,7 @@ $orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
                                 <select name="product_id" required>
                                     <option value="">Izvēlies preci</option>
                                     <?php foreach ($products as $product): ?>
-                                        <option value="<?php echo (int)$product['id']; ?>">
+                                        <option value="<?php echo (int)$product['id']; ?>" <?php echo (int)$product['quantity'] <= 0 ? 'disabled' : ''; ?>>
                                             <?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>
                                             — atlikums: <?php echo (int)$product['quantity']; ?>
                                         </option>
@@ -250,18 +418,26 @@ $orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
                                     <td><?php echo htmlspecialchars($order['status'], ENT_QUOTES, 'UTF-8'); ?></td>
                                     <td><?php echo htmlspecialchars($order['created_at'], ENT_QUOTES, 'UTF-8'); ?></td>
                                     <td>
-                                        <form method="post">
-                                            <input type="hidden" name="action" value="update_order_status">
-                                            <input type="hidden" name="order_id" value="<?php echo (int)$order['id']; ?>">
-                                            <select class="status-select" name="status">
-                                                <?php foreach (['jauns', 'pieņemts', 'izpildīts', 'atcelts'] as $status): ?>
-                                                    <option value="<?php echo $status; ?>" <?php echo $order['status'] === $status ? 'selected' : ''; ?>>
-                                                        <?php echo $status; ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                            <button class="poga" type="submit">Mainīt</button>
-                                        </form>
+                                        <div class="edit-rinda">
+                                            <form method="post">
+                                                <input type="hidden" name="action" value="update_order_status">
+                                                <input type="hidden" name="order_id" value="<?php echo (int)$order['id']; ?>">
+                                                <select class="status-select" name="status">
+                                                    <?php foreach (['jauns', 'pieņemts', 'izpildīts', 'atcelts'] as $status): ?>
+                                                        <option value="<?php echo $status; ?>" <?php echo $order['status'] === $status ? 'selected' : ''; ?>>
+                                                            <?php echo $status; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                                <button class="poga" type="submit">Mainīt</button>
+                                            </form>
+
+                                            <form method="post" onsubmit="return confirm('Vai tiešām dzēst šo pasūtījumu? Noliktavas atlikums tiks atjaunots, ja pasūtījums nav atcelts.');">
+                                                <input type="hidden" name="action" value="delete_order">
+                                                <input type="hidden" name="order_id" value="<?php echo (int)$order['id']; ?>">
+                                                <button class="poga poga-dzest" type="submit">Dzēst</button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -289,7 +465,7 @@ $orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
                             </div>
                             <div>
                                 <label>Plaukta vieta</label>
-                                <input type="text" name="shelf_location" placeholder="Piem., A-12">
+                                <input type="text" name="shelf_location" placeholder="Piem., A-12" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30">
                             </div>
                         </div>
                         <label>Apraksts</label>
@@ -324,7 +500,7 @@ $orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
                                                 <input type="text" name="name" value="<?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>" required>
                                                 <input type="text" name="description" value="<?php echo htmlspecialchars((string)$product['description'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Apraksts">
                                                 <input class="small-input" type="number" name="quantity" min="0" value="<?php echo (int)$product['quantity']; ?>" required>
-                                                <input type="text" name="shelf_location" value="<?php echo htmlspecialchars((string)$product['shelf_location'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Plaukts">
+                                                <input type="text" name="shelf_location" value="<?php echo htmlspecialchars((string)$product['shelf_location'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Plaukts" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30">
                                                 <button class="poga" type="submit">Saglabāt</button>
                                             </form>
 
@@ -345,9 +521,47 @@ $orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
 
             <article id="atskaites" class="admin-panel" data-panel>
                 <h2>Atskaites</h2>
+
+                <div class="tabula-kaste atskaite-kopsavilkums">
+                    <h3>Kopsavilkums</h3>
+                    <p>Kopā preču veidi: <strong><?php echo (int)$report['product_count']; ?></strong></p>
+                    <p>Kopējais preču atlikums noliktavā: <strong><?php echo (int)$report['total_stock_quantity']; ?></strong></p>
+                    <p>Kopā pasūtījumi: <strong><?php echo (int)$report['order_count']; ?></strong></p>
+                    <p>Kopējais pasūtītais daudzums: <strong><?php echo (int)$report['ordered_quantity_total']; ?></strong></p>
+                    <p>Aktīvie pasūtījumi: <strong><?php echo (int)$report['active_order_count']; ?></strong></p>
+                    <p>Izpildītie pasūtījumi: <strong><?php echo (int)$report['completed_order_count']; ?></strong></p>
+                    <p>Atceltie pasūtījumi: <strong><?php echo (int)$report['cancelled_order_count']; ?></strong></p>
+                    <p>Preces ar mazu atlikumu (0 līdz 5): <strong><?php echo (int)$report['low_stock_count']; ?></strong></p>
+                    <p>Aizņemtie plaukti: <strong><?php echo (int)$report['used_shelves_count']; ?></strong></p>
+                </div>
+
                 <div class="tabula-kaste">
-                    <p>Kopā preces: <strong><?php echo count($products); ?></strong></p>
-                    <p>Kopā pasūtījumi: <strong><?php echo count($orders); ?></strong></p>
+                    <h3>Atskaite pa precēm</h3>
+                    <table class="tabula">
+                        <thead>
+                            <tr>
+                                <th>Prece</th>
+                                <th>Plaukts</th>
+                                <th>Atlikums noliktavā</th>
+                                <th>Pasūtīts</th>
+                                <th>Izpildīts</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($productReport)): ?>
+                                <tr><td colspan="5">Atskaites datu vēl nav.</td></tr>
+                            <?php endif; ?>
+                            <?php foreach ($productReport as $row): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td><?php echo htmlspecialchars((string)$row['shelf_location'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td><?php echo (int)$row['stock_quantity']; ?></td>
+                                    <td><?php echo (int)$row['ordered_quantity']; ?></td>
+                                    <td><?php echo (int)$row['completed_quantity']; ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             </article>
         </section>

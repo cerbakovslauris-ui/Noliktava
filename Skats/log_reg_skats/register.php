@@ -13,17 +13,14 @@
     <main>
         <div class="reg">
             <div class="reg_teksts">
-                <h1>Laipni lūgti To Do List</h1>
-                <p>Reģistrējieties savā kontā, lai piekļūtu visādiem piedāvājumiem un būtu viens no mūsu locekļiem.</p>
+                <h1>Reģistrēties</h1>
                 <form action="../../Includes/log_reg_inc/reg_inc.php" method="POST">
                     <h3>Lietotājvārds vai vārds</h3>
                     <input type="text" name="lietotajvards" placeholder='Lietotājvārds vai vārds' required>
 
-
                     <h3>Parole</h3>
                     <input type="password" id="parole" name="parole" placeholder='Parole' required>
-                        <div class="proles_drošiba">
-                            <p>Parolei jābūt vismaz 8 rakstzīmēm, un tai jāietver lielie burti, cipari un speciālās rakstzīmes.</p>
+                        <div class="paroles_drošība">
                             <p id="rule-garums" class="parole-noteikums"><i class="fa fa-check" aria-hidden="true"></i>Astoņas rakstzīmes</p>
                             <p id="rule-lielais" class="parole-noteikums"><i class="fa fa-check" aria-hidden="true"></i>Lielais burts</p>
                             <p id="rule-cipars" class="parole-noteikums"><i class="fa fa-check" aria-hidden="true"></i>Cipars</p>
@@ -61,14 +58,16 @@
 
             function atjaunotParolesNoteikumus() {
                 const parole = paroleIevade.value;
+                const rakstzimjuSkaits = Array.from(parole).length;
 
-                setIzpildits(noteikumi.garums, parole.length >= 8);
-                setIzpildits(noteikumi.lielais, /[A-Z]/.test(parole));
+                setIzpildits(noteikumi.garums, rakstzimjuSkaits >= 8);
+                setIzpildits(noteikumi.lielais, /[A-ZĀČĒĢĪĶĻŅŠŪŽ]/.test(parole));
                 setIzpildits(noteikumi.cipars, /[0-9]/.test(parole));
-                setIzpildits(noteikumi.specialais, /[^a-zA-Z0-9]/.test(parole));
+                setIzpildits(noteikumi.specialais, /[^a-zA-ZĀČĒĢĪĶĻŅŠŪŽāčēģīķļņšūž0-9]/.test(parole));
             }
 
             paroleIevade.addEventListener('input', atjaunotParolesNoteikumus);
+            atjaunotParolesNoteikumus();
         })();
     </script>
 </body>
