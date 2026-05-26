@@ -57,7 +57,6 @@ body {
     color: #ffffff;
 }
 
-.darbinieks-lapa,
 .admin-lapa {
     display: grid;
     grid-template-columns: 280px 1fr;
@@ -65,7 +64,6 @@ body {
     padding: 24px;
 }
 
-.darbinieks-nav-bar,
 .admin-nav-bar {
     background: #ffffff;
     border: 1px solid #dddddd;
@@ -76,13 +74,11 @@ body {
     top: 16px;
 }
 
-.darbinieks-nav-bar h2,
 .admin-nav-bar h2 {
     margin: 0 0 14px;
     font-size: 20px;
 }
 
-.darbinieks-nav-bar ul,
 .admin-nav-bar ul {
     margin: 0;
     padding: 0;
@@ -91,7 +87,6 @@ body {
     gap: 8px;
 }
 
-.darbinieks-nav-bar a,
 .admin-nav-bar a {
     display: flex;
     align-items: center;
@@ -104,15 +99,12 @@ body {
     transition: 0.2s ease;
 }
 
-.darbinieks-nav-bar a:hover,
-.darbinieks-nav-bar a.active,
 .admin-nav-bar a:hover,
 .admin-nav-bar a.active {
     background: #f4f4f4;
     border-color: #cccccc;
 }
 
-.darbinieks-saturs,
 .admin-saturs {
     background: #ffffff;
     border: 1px solid #dddddd;
@@ -121,23 +113,19 @@ body {
     min-height: 260px;
 }
 
-.darbinieks-panel,
 .admin-panel {
     display: none;
 }
 
-.darbinieks-panel.active,
 .admin-panel.active {
     display: block;
 }
 
-.darbinieks-panel h2,
 .admin-panel h2 {
     margin: 0 0 10px;
     font-size: 28px;
 }
 
-.darbinieks-panel p,
 .admin-panel p {
     margin: 0 0 12px;
     line-height: 1.5;
@@ -259,13 +247,11 @@ textarea {
 }
 
 @media (max-width: 900px) {
-    .darbinieks-lapa,
     .admin-lapa {
         grid-template-columns: 1fr;
         padding: 16px;
     }
 
-    .darbinieks-nav-bar,
     .admin-nav-bar {
         position: static;
     }
