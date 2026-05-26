@@ -135,6 +135,20 @@
 	background: #ffffff;
 }
 
+.admin-form-inline input {
+	height: 34px;
+	padding: 0 8px;
+	border: 1px solid #cccccc;
+	border-radius: 6px;
+	background: #ffffff;
+}
+
+.admin-tabula textarea,
+.admin-tabula input,
+.admin-tabula select {
+	max-width: 100%;
+}
+
 .admin-poga {
 	height: 34px;
 	padding: 0 10px;

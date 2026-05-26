@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../Includes/auth.inc.php';
+require_once __DIR__ . '/../Includes/log_reg_inc/auth.inc.php';
 $auth = parbauditAutorizaciju('darbinieks');
 
 if (!isset($pdo)) {
@@ -86,6 +86,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($id <= 0) {
                 throw new Exception('Nav atrasta prece, kuru dzēst.');
+            }
+
+            $parbaudeStmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE product_id = ?');
+            $parbaudeStmt->execute([$id]);
+            $pasutijumuSkaits = (int)$parbaudeStmt->fetchColumn();
+
+            if ($pasutijumuSkaits > 0) {
+                throw new Exception('Nevar dzēst preci, jo tai ir saistīti pasūtījumi. Vispirms sakārto pasūtījumus.');
             }
 
             $stmt = $pdo->prepare('DELETE FROM products WHERE id = ?');

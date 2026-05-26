@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../Includes/auth.inc.php';
+require_once __DIR__ . '/../Includes/log_reg_inc/auth.inc.php';
 $auth = parbauditAutorizaciju('kartotajs');
 
 $lietotajaVards = (string) $auth['vards'];

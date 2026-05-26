@@ -1,12 +1,13 @@
 <?php
-require_once __DIR__ . '/auth.inc.php';
-require_once __DIR__ . '/dbh.inc.php';
+require_once __DIR__ . '/../log_reg_inc/auth.inc.php';
+require_once __DIR__ . '/../dbh.inc.php';
+require_once __DIR__ . '/admin_paligs.php';
 
 $auth = parbauditAutorizaciju('admin');
 $aktivaAdminaId = (int) ($auth['user_id'] ?? 0);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-	header('Location: ../Skats/admin.php#lietotaji');
+	header('Location: ../../Skats/admin.php#lietotaji');
 	exit;
 }
 
@@ -35,16 +36,7 @@ try {
 		':id' => $merkaLietotajaId,
 	]);
 
-	$_SESSION['admin_flash'] = [
-		'tips' => 'ok',
-		'teksts' => 'Loma veiksmīgi nomainīta.',
-	];
+	adminNovirzitArZinu('lietotaji', 'ok', 'Loma veiksmīgi nomainīta.');
 } catch (Throwable $e) {
-	$_SESSION['admin_flash'] = [
-		'tips' => 'kluda',
-		'teksts' => $e->getMessage(),
-	];
+	adminNovirzitArZinu('lietotaji', 'kluda', $e->getMessage());
 }
-
-header('Location: ../Skats/admin.php#lietotaji');
-exit;
