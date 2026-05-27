@@ -182,78 +182,132 @@ canvas {
     box-shadow: 0 16px 30px rgba(209, 44, 121, 0.22);
 }
 
-/* Responsīvais dizains */
+
+
+/* Admin lapas izvietojums - labots tikai skats.css */
+@media (min-width: 901px) {
+    .admin-lapa,
+    .darbinieks-lapa,
+    .kartotajs-lapa {
+        width: calc(100% - 96px) !important;
+        max-width: 1500px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        display: grid !important;
+        grid-template-columns: 280px minmax(0, 1fr) !important;
+        gap: 24px !important;
+        box-sizing: border-box !important;
+    }
+
+    .admin-nav-bar {
+        width: 280px !important;
+        max-width: 280px !important;
+        justify-self: start !important;
+    }
+
+    .admin-saturs {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+    }
+}
+
 @media (max-width: 900px) {
     .headers {
-        min-height: auto;
-        padding: 16px;
-        flex-direction: column;
-        gap: 12px;
+        min-height: auto !important;
+        padding: 18px 14px 76px !important;
+    }
+
+    .name h1 {
+        font-size: 34px !important;
     }
 
     .log_reg {
-        position: static;
-        transform: none;
-        flex-wrap: wrap;
-        justify-content: center;
+        top: auto !important;
+        right: 50% !important;
+        bottom: 14px !important;
+        transform: translateX(50%) !important;
+        width: calc(100% - 28px) !important;
+        justify-content: center !important;
+        flex-wrap: wrap !important;
     }
 
-    .saturs-centrs {
-        width: min(640px, calc(100% - 24px));
-        margin: 34px auto;
-        padding: 30px 22px;
+    .admin-lapa,
+    .darbinieks-lapa,
+    .kartotajs-lapa {
+        width: calc(100% - 24px) !important;
+        max-width: none !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        padding: 18px 0 !important;
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+        box-sizing: border-box !important;
+    }
+
+    .admin-nav-bar,
+    .admin-saturs {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .admin-nav-bar {
+        position: static !important;
+        padding: 16px !important;
+    }
+
+    .admin-nav-bar ul {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+    }
+
+    .admin-nav-bar a {
+        justify-content: center !important;
+        text-align: center !important;
+    }
+
+    .admin-saturs {
+        padding: 18px !important;
     }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 560px) {
     .headers {
-        padding: 14px;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
     }
 
     .name h1 {
-        font-size: 30px;
-    }
-
-    .log_reg {
-        width: 100%;
+        font-size: 28px !important;
     }
 
     .log_reg a,
     .user {
-        flex: 1 1 180px;
-        max-width: none;
+        min-height: 38px !important;
+        padding: 8px 12px !important;
+        font-size: 13px !important;
     }
 
-    .saturs-centrs {
-        margin: 24px auto;
-        border-radius: 18px;
-    }
-}
-
-@media (max-width: 520px) {
-    .name h1 {
-        font-size: 26px;
+    .admin-lapa,
+    .darbinieks-lapa,
+    .kartotajs-lapa {
+        width: calc(100% - 16px) !important;
+        padding-top: 12px !important;
     }
 
-    .log_reg a,
-    .user {
-        width: 100%;
-        flex-basis: 100%;
-        min-height: 40px;
-        font-size: 13px;
+    .admin-nav-bar ul {
+        grid-template-columns: 1fr !important;
     }
 
-    .saturs-centrs {
-        width: calc(100% - 20px);
-        margin: 18px auto;
-        padding: 22px 16px;
-    }
-
-    .saturs-centrs a,
-    .saturs-centrs button,
-    .saturs-centrs input[type="submit"] {
-        width: 100%;
-        min-height: 42px;
-        font-size: 13px;
+    .admin-nav-bar,
+    .admin-saturs {
+        border-radius: 18px !important;
     }
 }
