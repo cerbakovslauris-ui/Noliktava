@@ -6,17 +6,15 @@ if (session_status() === PHP_SESSION_NONE) {
 
 function noteiktLomuAtslegu(int $roleId, string $roleName): string
 {
-    $loma = strtolower(trim($roleName));
-
-    if ($roleId === 1 || str_contains($loma, 'admin')) {
+    if ($roleId === 1) {
         return 'admin';
     }
 
-    if ($roleId === 2 || str_contains($loma, 'darbin')) {
+    if ($roleId === 2) {
         return 'darbinieks';
     }
 
-    if ($roleId === 3 || str_contains($loma, 'kartot')) {
+    if ($roleId === 3) {
         return 'kartotajs';
     }
 

@@ -16,9 +16,10 @@ function paroleAtbilstPrasibam(string $parole): bool
     $irVismaz8 = strlen($parole) >= 8;
     $irLielaisBurts = preg_match('/[A-Z]/', $parole) === 1;
     $irCipars = preg_match('/[0-9]/', $parole) === 1;
-    $irSpecialaRakstzime = preg_match('/[^a-zA-Z0-9]/', $parole) === 1;
+    $irSpecialaRakstzime = preg_match('/[^a-zA-Z0-9\s]/', $parole) === 1;
+    $navAtstarpes = preg_match('/\s/', $parole) === 0;
 
-    return $irVismaz8 && $irLielaisBurts && $irCipars && $irSpecialaRakstzime;
+    return $irVismaz8 && $irLielaisBurts && $irCipars && $irSpecialaRakstzime && $navAtstarpes;
 }
 
 function normalizeShelfLocation(string $value): string

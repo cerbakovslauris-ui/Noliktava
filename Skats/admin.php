@@ -16,7 +16,6 @@ $atskaite = [
     'kop_lietotaji' => 0,
     'kop_preces' => 0,
     'kop_atlikums' => 0,
-    'bez_atlikuma' => 0,
     'kop_pasutijumi' => 0,
     'jauni_pasutijumi' => 0,
     'atcelti_pasutijumi' => 0,
@@ -48,9 +47,6 @@ try {
     foreach ($products as $product) {
         $daudzums = (int) ($product['quantity'] ?? 0);
         $atskaite['kop_atlikums'] += $daudzums;
-        if ($daudzums <= 0) {
-            $atskaite['bez_atlikuma']++;
-        }
     }
 } catch (PDOException $e) {
     $produktuIeladesKluda = 'Neizdevās ielādēt preču sarakstu.';
@@ -122,7 +118,7 @@ try {
                     <h3>Izveidot lietotāju</h3>
                     <form method="post" action="../Includes/admin_inc/izveidot_user.php" class="admin-form-inline admin-create-user-form">
                         <input type="text" name="username" placeholder="Lietotājvārds" required>
-                        <input type="password" name="password" placeholder="Parole" required>
+                        <input type="password" name="password" placeholder="Parole" pattern="\S+" title="Parolē nedrīkst būt atstarpes" required>
                         <select name="role_id" aria-label="Izvēlēties lomu" required>
                             <option value="">Izvēlies lomu</option>
                             <?php foreach ($visasLomas as $loma): ?>
@@ -157,7 +153,7 @@ try {
                                             <form method="post" action="../Includes/admin_inc/rediget_user.php" class="admin-form-inline admin-user-edit-form">
                                                 <input type="hidden" name="lietotaja_id" value="<?php echo (int) $lietotajs['id']; ?>">
                                                 <input type="text" name="username" value="<?php echo htmlspecialchars((string) $lietotajs['username'], ENT_QUOTES, 'UTF-8'); ?>" required>
-                                                <input type="password" name="jauna_parole" placeholder="Jauna parole (nav obligāta)">
+                                                <input type="password" name="jauna_parole" placeholder="Jauna parole (nav obligāta)" pattern="\S*" title="Parolē nedrīkst būt atstarpes">
                                                 <button type="submit" class="admin-poga admin-poga-mainit">Saglabāt kontu</button>
                                             </form>
                                         </td>
@@ -206,7 +202,7 @@ try {
                                 </tr>
                                 <tr>
                                     <td><label for="add-shelf">Plaukta vieta</label></td>
-                                    <td><input id="add-shelf" type="text" name="shelf_location" placeholder="Piem., A-12" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30"></td>
+                                    <td><input id="add-shelf" type="text" name="shelf_location" placeholder="Piem. A-Z un 1-30" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30"></td>
                                 </tr>
                                 <tr>
                                     <td><label for="add-description">Apraksts</label></td>
@@ -291,10 +287,6 @@ try {
                                 <tr>
                                     <th>Kopējais preču atlikums</th>
                                     <td><?php echo (int) $atskaite['kop_atlikums']; ?></td>
-                                </tr>
-                                <tr>
-                                    <th>Preces bez atlikuma</th>
-                                    <td><?php echo (int) $atskaite['bez_atlikuma']; ?></td>
                                 </tr>
                                 <tr>
                                     <th>Kopā pasūtījumi</th>

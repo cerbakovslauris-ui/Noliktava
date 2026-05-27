@@ -19,7 +19,7 @@
                     <input type="text" name="lietotajvards" placeholder='Lietotājvārds vai vārds' pattern="[^0-9]*" title="Lietotājvārdā nedrīkst būt cipari" required>
 
                     <h3>Parole</h3>
-                    <input type="password" id="parole" name="parole" placeholder='Parole' required>
+                    <input type="password" id="parole" name="parole" placeholder='Parole' pattern="\S+" title="Parolē nedrīkst būt atstarpes" required>
                         <div class="paroles_drošība">
                             <p id="rule-garums" class="parole-noteikums"><i class="fa fa-check" aria-hidden="true"></i>Astoņas rakstzīmes</p>
                             <p id="rule-lielais" class="parole-noteikums"><i class="fa fa-check" aria-hidden="true"></i>Lielais burts</p>
@@ -27,7 +27,7 @@
                             <p id="rule-specialais" class="parole-noteikums"><i class="fa fa-check" aria-hidden="true"></i>Speciālā rakstzīme</p>
                         </div>     
                     <h3>Apstiprināt paroli</h3>
-                    <input type="password" name="parole_apstiprinat" placeholder='Apstiprināt paroli' required> 
+                    <input type="password" name="parole_apstiprinat" placeholder='Apstiprināt paroli' pattern="\S+" title="Parolē nedrīkst būt atstarpes" required> 
                     <button type="submit"><i class="fa fa-user-plus"></i>Reģistrēties</button>
                 </form>
                 <p>Jau ir konts? <a href="login.php">Pieteikties</a></p>

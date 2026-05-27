@@ -37,7 +37,7 @@ try {
 
     if ($newPassword !== '') {
         if (!paroleAtbilstPrasibam($newPassword)) {
-            throw new RuntimeException('Jaunajai parolei jābūt vismaz 8 rakstzīmēm ar lielo burtu, ciparu un speciālo rakstzīmi.');
+            throw new RuntimeException('Jaunajai parolei jābūt vismaz 8 rakstzīmēm ar lielo burtu, ciparu un speciālo rakstzīmi, un bez atstarpēm.');
         }
 
         $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);

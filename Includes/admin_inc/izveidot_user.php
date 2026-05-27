@@ -20,7 +20,7 @@ try {
     }
 
     if (!paroleAtbilstPrasibam($password)) {
-        throw new RuntimeException('Parolei jābūt vismaz 8 rakstzīmēm un tajā jābūt lielajam burtam, ciparam un speciālajai rakstzīmei.');
+        throw new RuntimeException('Parolei jābūt vismaz 8 rakstzīmēm, ar lielo burtu, ciparu un speciālo rakstzīmi, un bez atstarpēm.');
     }
 
     $lomaStmt = $pdo->prepare('SELECT id FROM roles WHERE id = :id LIMIT 1');
