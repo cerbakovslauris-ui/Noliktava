@@ -97,7 +97,11 @@ function normalizePlauktaNosaukums(string $nosaukums): string
         throw new RuntimeException('Plaukta nosaukums nedrīkst būt tukšs.');
     }
 
-    return $nosaukums;
+    if (!preg_match('/^([A-F])-?([1-9]|[12][0-9]|30)$/', $nosaukums, $sakritiba)) {
+        throw new RuntimeException('Plauktu var ievadīt tikai no A līdz F un no 1 līdz 30, piemēram, A-1 vai F-30.');
+    }
+
+    return $sakritiba[1] . '-' . $sakritiba[2];
 }
 
 function atrastVaiIzveidotPlauktu(PDO $pdo, string $nosaukums): int
@@ -336,7 +340,7 @@ if (hasPdo()) {
                             </div>
                             <div>
                                 <label>Plaukts</label>
-                                <input type="text" name="plaukts" placeholder="Piemēram: A-12" required>
+                                <input class="plaukta-ievade" type="text" name="plaukts" placeholder="Piemēram: A-12" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" required>
                             </div>
                             <div>
                                 <label>Daudzums</label>
@@ -373,7 +377,7 @@ if (hasPdo()) {
                                                 <form class="kartotajs-map-form" method="post">
                                                     <input type="hidden" name="action" value="update_mapping">
                                                     <input type="hidden" name="id" value="<?php echo e($rinda['id']); ?>">
-                                                    <input type="text" name="plaukts" value="<?php echo e($rinda['plaukts_nosaukums']); ?>" required>
+                                                    <input class="plaukta-ievade" type="text" name="plaukts" value="<?php echo e($rinda['plaukts_nosaukums']); ?>" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" required>
                                                     <input type="number" name="daudzums" min="0" value="<?php echo e($rinda['daudzums']); ?>">
                                                     <input type="text" name="piezime" value="<?php echo e($rinda['piezime'] ?? ''); ?>" placeholder="Piezīme">
                                                     <button class="admin-poga admin-poga-mainit" type="submit">Saglabāt</button>
@@ -463,6 +467,45 @@ if (hasPdo()) {
                     link.classList.toggle('active', link.getAttribute('href') === '#' + targetPanel.id);
                 });
             }
+
+            function sakartotPlauktu(value) {
+                const notirits = value.toUpperCase().replace(/\s+/g, '').replace(/[^A-F0-9-]/g, '');
+                const sakritiba = notirits.match(/^([A-F])-?(\d{0,2})/);
+
+                if (!sakritiba) {
+                    return notirits.slice(0, 1);
+                }
+
+                const burts = sakritiba[1];
+                let cipari = sakritiba[2] || '';
+
+                if (cipari !== '') {
+                    let numurs = parseInt(cipari, 10);
+
+                    if (Number.isNaN(numurs)) {
+                        return burts;
+                    }
+
+                    if (numurs > 30) {
+                        numurs = 30;
+                    }
+
+                    cipari = String(numurs);
+                    return burts + '-' + cipari;
+                }
+
+                return burts;
+            }
+
+            document.querySelectorAll('.plaukta-ievade').forEach((input) => {
+                input.addEventListener('input', () => {
+                    input.value = sakartotPlauktu(input.value);
+                });
+
+                input.addEventListener('blur', () => {
+                    input.value = sakartotPlauktu(input.value);
+                });
+            });
 
             window.addEventListener('hashchange', showPanelFromHash);
             showPanelFromHash();
