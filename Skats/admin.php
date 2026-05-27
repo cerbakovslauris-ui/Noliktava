@@ -206,7 +206,7 @@ try {
                                 </tr>
                                 <tr>
                                     <td><label for="add-shelf">Plaukta vieta</label></td>
-                                    <td><input id="add-shelf" type="text" name="shelf_location" placeholder="Piem., A-12"></td>
+                                    <td><input id="add-shelf" type="text" name="shelf_location" placeholder="Piem., A-12" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30"></td>
                                 </tr>
                                 <tr>
                                     <td><label for="add-description">Apraksts</label></td>
@@ -252,7 +252,7 @@ try {
                                                     <input type="text" name="name" value="<?php echo htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8'); ?>" required>
                                                     <input type="text" name="description" value="<?php echo htmlspecialchars((string) ($product['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" placeholder="Apraksts">
                                                     <input type="number" name="quantity" min="0" value="<?php echo (int) $product['quantity']; ?>" required>
-                                                    <input type="text" name="shelf_location" value="<?php echo htmlspecialchars((string) ($product['shelf_location'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" placeholder="Plaukts">
+                                                    <input type="text" name="shelf_location" value="<?php echo htmlspecialchars((string) ($product['shelf_location'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" placeholder="Plaukts" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30">
                                                     <button type="submit" class="admin-poga admin-poga-mainit">Saglabāt</button>
                                                 </form>
                                                 <form method="post" action="../Includes/admin_inc/dzest_produktu.php" class="admin-form-inline" onsubmit="return confirm('Vai tiešām dzēst šo preci?');">

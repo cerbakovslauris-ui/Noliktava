@@ -24,6 +24,8 @@ try {
 		throw new RuntimeException('Daudzums nevar būt negatīvs.');
 	}
 
+	$shelfLocation = normalizeShelfLocation($shelfLocation);
+
 	$stmt = $pdo->prepare('INSERT INTO products (name, description, quantity, shelf_location) VALUES (?, ?, ?, ?)');
 	$stmt->execute([$name, $description, $quantity, $shelfLocation]);
 

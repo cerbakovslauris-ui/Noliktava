@@ -36,6 +36,10 @@ if ($vards === '' || $parole === '' || $paroleApstiprinat === '') {
         die('Ludzu aizpildiet visus laukus.');
 }
 
+if (preg_match('/[0-9]/', $vards) === 1) {
+        die('Lietotājvārdā nevar būt cipari.');
+}
+
 if ($parole !== $paroleApstiprinat) {
         die('Paroles nesakrit.');
 }

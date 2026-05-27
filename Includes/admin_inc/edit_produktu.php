@@ -29,6 +29,8 @@ try {
 		throw new RuntimeException('Daudzums nevar būt negatīvs.');
 	}
 
+	$shelfLocation = normalizeShelfLocation($shelfLocation);
+
 	$stmt = $pdo->prepare('UPDATE products SET name = ?, description = ?, quantity = ?, shelf_location = ? WHERE id = ?');
 	$stmt->execute([$name, $description, $quantity, $shelfLocation, $id]);
 

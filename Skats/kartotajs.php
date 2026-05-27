@@ -88,6 +88,36 @@ function pirmaKolonna(array $kolonnas, array $iespejas, string $noklusejums): st
     return $noklusejums;
 }
 
+function normalizePlauktaNosaukums(string $nosaukums): string
+{
+    $nosaukums = strtoupper(trim($nosaukums));
+    $nosaukums = preg_replace('/\s+/', '', $nosaukums) ?? '';
+
+    if ($nosaukums === '') {
+        throw new RuntimeException('Plaukta nosaukums nedrīkst būt tukšs.');
+    }
+
+    return $nosaukums;
+}
+
+function atrastVaiIzveidotPlauktu(PDO $pdo, string $nosaukums): int
+{
+    $nosaukums = normalizePlauktaNosaukums($nosaukums);
+
+    $meklet = $pdo->prepare('SELECT id FROM plaukti WHERE nosaukums = ? LIMIT 1');
+    $meklet->execute([$nosaukums]);
+    $atrastsId = $meklet->fetchColumn();
+
+    if ($atrastsId !== false) {
+        return (int) $atrastsId;
+    }
+
+    $izveidot = $pdo->prepare('INSERT INTO plaukti (nosaukums, apraksts) VALUES (?, ?)');
+    $izveidot->execute([$nosaukums, '']);
+
+    return (int) $pdo->lastInsertId();
+}
+
 function izveidotKartotajaTabulas(): void
 {
     if (!hasPdo()) {
@@ -98,7 +128,6 @@ function izveidotKartotajaTabulas(): void
         $GLOBALS['pdo']->exec("CREATE TABLE IF NOT EXISTS plaukti (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nosaukums TEXT NOT NULL,
-            zona TEXT DEFAULT '',
             apraksts TEXT DEFAULT '',
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )");
@@ -117,7 +146,6 @@ function izveidotKartotajaTabulas(): void
     $GLOBALS['pdo']->exec("CREATE TABLE IF NOT EXISTS plaukti (
         id INT AUTO_INCREMENT PRIMARY KEY,
         nosaukums VARCHAR(120) NOT NULL,
-        zona VARCHAR(120) DEFAULT '',
         apraksts TEXT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
@@ -161,57 +189,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && hasPdo()) {
     $action = $_POST['action'] ?? '';
 
     try {
-        if ($action === 'add_shelf') {
-            $nosaukums = trim($_POST['nosaukums'] ?? '');
-            $zona = trim($_POST['zona'] ?? '');
-            $apraksts = trim($_POST['apraksts'] ?? '');
-
-            if ($nosaukums === '') {
-                throw new RuntimeException('Plaukta nosaukums nedrīkst būt tukšs.');
-            }
-
-            $stmt = $pdo->prepare('INSERT INTO plaukti (nosaukums, zona, apraksts) VALUES (?, ?, ?)');
-            $stmt->execute([$nosaukums, $zona, $apraksts]);
-            $zina = 'Plaukts pievienots.';
-        }
-
-        if ($action === 'update_shelf') {
-            $id = (int) ($_POST['id'] ?? 0);
-            $nosaukums = trim($_POST['nosaukums'] ?? '');
-            $zona = trim($_POST['zona'] ?? '');
-            $apraksts = trim($_POST['apraksts'] ?? '');
-
-            if ($id <= 0 || $nosaukums === '') {
-                throw new RuntimeException('Pārbaudi plaukta datus.');
-            }
-
-            $stmt = $pdo->prepare('UPDATE plaukti SET nosaukums = ?, zona = ?, apraksts = ? WHERE id = ?');
-            $stmt->execute([$nosaukums, $zona, $apraksts, $id]);
-            $zina = 'Plaukts atjaunots.';
-        }
-
-        if ($action === 'delete_shelf') {
-            $id = (int) ($_POST['id'] ?? 0);
-            $stmt = $pdo->prepare('SELECT COUNT(*) FROM preces_plauktos WHERE plaukts_id = ?');
-            $stmt->execute([$id]);
-
-            if ((int) $stmt->fetchColumn() > 0) {
-                throw new RuntimeException('Šo plauktu nevar dzēst, jo tajā jau ir piesaistītas preces.');
-            }
-
-            $stmt = $pdo->prepare('DELETE FROM plaukti WHERE id = ?');
-            $stmt->execute([$id]);
-            $zina = 'Plaukts dzēsts.';
-        }
-
         if ($action === 'add_mapping') {
             $productId = (int) ($_POST['product_id'] ?? 0);
-            $plauktsId = (int) ($_POST['plaukts_id'] ?? 0);
+            $plauktaNosaukums = (string) ($_POST['plaukts'] ?? '');
             $daudzums = max(0, (int) ($_POST['daudzums'] ?? 0));
             $piezime = trim($_POST['piezime'] ?? '');
+            $plauktsId = atrastVaiIzveidotPlauktu($pdo, $plauktaNosaukums);
 
-            if ($productId <= 0 || $plauktsId <= 0) {
-                throw new RuntimeException('Izvēlies preci un plauktu.');
+            if ($productId <= 0) {
+                throw new RuntimeException('Izvēlies preci un ievadi plauktu.');
             }
 
             $stmt = $pdo->prepare('INSERT INTO preces_plauktos (product_id, plaukts_id, daudzums, piezime) VALUES (?, ?, ?, ?)');
@@ -221,11 +207,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && hasPdo()) {
 
         if ($action === 'update_mapping') {
             $id = (int) ($_POST['id'] ?? 0);
-            $plauktsId = (int) ($_POST['plaukts_id'] ?? 0);
+            $plauktaNosaukums = (string) ($_POST['plaukts'] ?? '');
             $daudzums = max(0, (int) ($_POST['daudzums'] ?? 0));
             $piezime = trim($_POST['piezime'] ?? '');
+            $plauktsId = atrastVaiIzveidotPlauktu($pdo, $plauktaNosaukums);
 
-            if ($id <= 0 || $plauktsId <= 0) {
+            if ($id <= 0) {
                 throw new RuntimeException('Pārbaudi kartēšanas datus.');
             }
 
@@ -271,8 +258,7 @@ if (hasPdo()) {
 
             $sql = 'SELECT pp.id, pp.product_id, pp.plaukts_id, pp.daudzums, pp.piezime, pp.updated_at,
                            p.' . $produktaNosaukumaKolonna . ' AS preces_nosaukums,
-                           pl.nosaukums AS plaukts_nosaukums,
-                           pl.zona AS plaukts_zona
+                          pl.nosaukums AS plaukts_nosaukums
                     FROM preces_plauktos pp
                     INNER JOIN ' . $produktuTabula . ' p ON p.id = pp.product_id
                     INNER JOIN plaukti pl ON pl.id = pp.plaukts_id
@@ -313,8 +299,7 @@ if (hasPdo()) {
             <h2>Kārtotāja panelis</h2>
             <nav>
                 <ul>
-                    <li><a class="active" href="#plaukti"><i class="fa fa-th-large" aria-hidden="true"></i>Plaukti</a></li>
-                    <li><a href="#kartesana"><i class="fa fa-exchange" aria-hidden="true"></i>Kartēšana</a></li>
+                    <li><a class="active" href="#kartesana"><i class="fa fa-exchange" aria-hidden="true"></i>Kartēšana</a></li>
                     <li><a href="#atskaites"><i class="fa fa-line-chart" aria-hidden="true"></i>Atskaites</a></li>
                 </ul>
             </nav>
@@ -329,71 +314,7 @@ if (hasPdo()) {
                 <div class="admin-ok-zina"><?php echo e($zina); ?></div>
             <?php endif; ?>
 
-            <article id="plaukti" class="admin-panel active" data-panel>
-                <h2>Plaukti</h2>
-                <p>Šeit var pievienot un labot noliktavas plauktus, lai vēlāk pie tiem piesaistītu preces.</p>
-
-                <div class="admin-tabula-wrap">
-                    <h3>Pievienot plauktu</h3>
-                    <form class="kartotajs-form kartotajs-form-3" method="post">
-                        <input type="hidden" name="action" value="add_shelf">
-                        <div>
-                            <label>Plaukta nosaukums</label>
-                            <input type="text" name="nosaukums" placeholder="Piemēram: A-01" required>
-                        </div>
-                        <div>
-                            <label>Zona</label>
-                            <input type="text" name="zona" placeholder="Piemēram: Galvenā zona">
-                        </div>
-                        <div>
-                            <label>Apraksts</label>
-                            <input type="text" name="apraksts" placeholder="Īss plaukta apraksts">
-                        </div>
-                        <button class="admin-poga" type="submit"><i class="fa fa-plus"></i>Pievienot</button>
-                    </form>
-                </div>
-
-                <div class="admin-tabula-wrap">
-                    <h3>Plauktu saraksts</h3>
-                    <?php if (!$plaukti): ?>
-                        <p>Plaukti vēl nav pievienoti.</p>
-                    <?php else: ?>
-                        <table class="admin-tabula kartotajs-tabula">
-                            <thead>
-                                <tr>
-                                    <th>Nosaukums</th>
-                                    <th>Zona</th>
-                                    <th>Apraksts</th>
-                                    <th>Darbības</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($plaukti as $plaukts): ?>
-                                    <tr>
-                                        <td colspan="4">
-                                            <form class="kartotajs-row-form" method="post">
-                                                <input type="hidden" name="action" value="update_shelf">
-                                                <input type="hidden" name="id" value="<?php echo e($plaukts['id']); ?>">
-                                                <input type="text" name="nosaukums" value="<?php echo e($plaukts['nosaukums']); ?>" required>
-                                                <input type="text" name="zona" value="<?php echo e($plaukts['zona'] ?? ''); ?>">
-                                                <input type="text" name="apraksts" value="<?php echo e($plaukts['apraksts'] ?? ''); ?>">
-                                                <button class="admin-poga admin-poga-mainit" type="submit">Saglabāt</button>
-                                            </form>
-                                            <form class="kartotajs-delete-form" method="post" onsubmit="return confirm('Vai tiešām dzēst šo plauktu?');">
-                                                <input type="hidden" name="action" value="delete_shelf">
-                                                <input type="hidden" name="id" value="<?php echo e($plaukts['id']); ?>">
-                                                <button class="admin-poga admin-poga-dzest" type="submit">Dzēst</button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    <?php endif; ?>
-                </div>
-            </article>
-
-            <article id="kartesana" class="admin-panel" data-panel>
+            <article id="kartesana" class="admin-panel active" data-panel>
                 <h2>Kartēšana</h2>
                 <p>Šeit var norādīt, kurā plauktā atrodas konkrēta prece un cik daudz vienību ir šajā vietā.</p>
 
@@ -415,12 +336,7 @@ if (hasPdo()) {
                             </div>
                             <div>
                                 <label>Plaukts</label>
-                                <select name="plaukts_id" required>
-                                    <option value="">Izvēlies plauktu</option>
-                                    <?php foreach ($plaukti as $plaukts): ?>
-                                        <option value="<?php echo e($plaukts['id']); ?>"><?php echo e($plaukts['nosaukums']); ?> <?php echo $plaukts['zona'] ? '(' . e($plaukts['zona']) . ')' : ''; ?></option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <input type="text" name="plaukts" placeholder="Piemēram: A-12" required>
                             </div>
                             <div>
                                 <label>Daudzums</label>
@@ -457,13 +373,7 @@ if (hasPdo()) {
                                                 <form class="kartotajs-map-form" method="post">
                                                     <input type="hidden" name="action" value="update_mapping">
                                                     <input type="hidden" name="id" value="<?php echo e($rinda['id']); ?>">
-                                                    <select name="plaukts_id" required>
-                                                        <?php foreach ($plaukti as $plaukts): ?>
-                                                            <option value="<?php echo e($plaukts['id']); ?>" <?php echo ((int) $plaukts['id'] === (int) $rinda['plaukts_id']) ? 'selected' : ''; ?>>
-                                                                <?php echo e($plaukts['nosaukums']); ?> <?php echo $plaukts['zona'] ? '(' . e($plaukts['zona']) . ')' : ''; ?>
-                                                            </option>
-                                                        <?php endforeach; ?>
-                                                    </select>
+                                                    <input type="text" name="plaukts" value="<?php echo e($rinda['plaukts_nosaukums']); ?>" required>
                                                     <input type="number" name="daudzums" min="0" value="<?php echo e($rinda['daudzums']); ?>">
                                                     <input type="text" name="piezime" value="<?php echo e($rinda['piezime'] ?? ''); ?>" placeholder="Piezīme">
                                                     <button class="admin-poga admin-poga-mainit" type="submit">Saglabāt</button>
@@ -511,7 +421,6 @@ if (hasPdo()) {
                             <thead>
                                 <tr>
                                     <th>Plaukts</th>
-                                    <th>Zona</th>
                                     <th>Preču ieraksti</th>
                                     <th>Daudzums</th>
                                 </tr>
@@ -524,7 +433,6 @@ if (hasPdo()) {
                                     ?>
                                     <tr>
                                         <td><?php echo e($plaukts['nosaukums']); ?></td>
-                                        <td><?php echo e($plaukts['zona'] ?? ''); ?></td>
                                         <td><?php echo count($ieraksti); ?></td>
                                         <td><?php echo e($daudzums); ?></td>
                                     </tr>
@@ -543,7 +451,7 @@ if (hasPdo()) {
             const panels = Array.from(document.querySelectorAll('[data-panel]'));
 
             function showPanelFromHash() {
-                const hash = window.location.hash || '#plaukti';
+                const hash = window.location.hash || '#kartesana';
                 const targetId = hash.replace('#', '');
                 const targetPanel = panels.find((panel) => panel.id === targetId) || panels[0];
 

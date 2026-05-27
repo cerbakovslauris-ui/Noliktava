@@ -20,3 +20,19 @@ function paroleAtbilstPrasibam(string $parole): bool
 
     return $irVismaz8 && $irLielaisBurts && $irCipars && $irSpecialaRakstzime;
 }
+
+function normalizeShelfLocation(string $value): string
+{
+    $value = strtoupper(trim($value));
+    $value = str_replace(' ', '', $value);
+
+    if ($value === '') {
+        return '';
+    }
+
+    if (!preg_match('/^([A-F])-?([1-9]|[12][0-9]|30)$/', $value, $matches)) {
+        throw new RuntimeException('Plaukta vietai jābūt no A līdz F un no 1 līdz 30, piemēram, A-1 vai F-30.');
+    }
+
+    return $matches[1] . '-' . $matches[2];
+}

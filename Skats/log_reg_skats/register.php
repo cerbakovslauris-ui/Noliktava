@@ -16,7 +16,7 @@
                 <h1>Reģistrēties</h1>
                 <form action="../../Includes/log_reg_inc/reg_inc.php" method="POST">
                     <h3>Lietotājvārds vai vārds</h3>
-                    <input type="text" name="lietotajvards" placeholder='Lietotājvārds vai vārds' required>
+                    <input type="text" name="lietotajvards" placeholder='Lietotājvārds vai vārds' pattern="[^0-9]*" title="Lietotājvārdā nedrīkst būt cipari" required>
 
                     <h3>Parole</h3>
                     <input type="password" id="parole" name="parole" placeholder='Parole' required>
