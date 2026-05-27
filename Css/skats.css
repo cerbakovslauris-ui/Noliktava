@@ -182,23 +182,4 @@ canvas {
     box-shadow: 0 16px 30px rgba(209, 44, 121, 0.22);
 }
 
-@media (max-width: 760px) {
-    .headers {
-        position: static;
-        flex-direction: column-reverse;
-        gap: 14px;
-        padding: 18px 16px;
-    }
 
-    .log_reg {
-        position: static;
-        transform: none;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .saturs-centrs {
-        margin-top: 28px;
-        padding: 28px 20px;
-    }
-}

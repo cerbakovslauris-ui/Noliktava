@@ -236,25 +236,3 @@ main {
     color: var(--success) !important;
 }
 
-@media (max-width: 520px) {
-    .paroles_drošība {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 620px) {
-    main {
-        align-items: flex-start;
-        padding-top: 92px;
-    }
-
-    .back {
-        top: 16px;
-        left: 16px;
-    }
-
-    .reg_teksts {
-        padding: 26px 20px;
-        border-radius: 22px;
-    }
-}
