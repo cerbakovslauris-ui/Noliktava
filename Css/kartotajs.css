@@ -100,43 +100,8 @@ body::before {
     box-shadow: 0 0 0 4px rgba(246, 83, 159, 0.13);
 }
 
-
-.kartotajs-tabula {
-    width: 100%;
-    table-layout: fixed;
-}
-
-.kartotajs-tabula th:nth-child(1),
-.kartotajs-tabula td:nth-child(1) {
-    width: 15%;
-}
-
-.kartotajs-tabula th:nth-child(2),
-.kartotajs-tabula td:nth-child(2) {
-    width: 20%;
-}
-
-.kartotajs-tabula th:nth-child(3),
-.kartotajs-tabula td:nth-child(3) {
-    width: 12%;
-}
-
-.kartotajs-tabula th:nth-child(4),
-.kartotajs-tabula td:nth-child(4) {
-    width: 27%;
-}
-
-.kartotajs-tabula th:nth-child(5),
-.kartotajs-tabula td:nth-child(5) {
-    width: 26%;
-}
-
 .kartotajs-tabula td {
     vertical-align: middle;
-}
-
-.kartotajs-tabula td .kartotajs-table-input {
-    width: 100%;
 }
 
 .kartotajs-table-input {
@@ -160,7 +125,6 @@ body::before {
 
 .kartotajs-daudzums-input {
     min-width: 80px;
-    max-width: 120px;
 }
 
 .kartotajs-darbibas {
@@ -169,10 +133,6 @@ body::before {
     justify-content: flex-start;
     gap: 8px;
     flex-wrap: nowrap;
-}
-
-.kartotajs-darbibas .admin-poga {
-    min-width: 92px;
 }
 
 .kartotajs-row-form,
@@ -193,8 +153,8 @@ body::before {
 }
 
 .kartotajs-delete-form {
-    display: none;
-    margin: 0;
+    display: inline-flex;
+    margin: 10px 0 0;
 }
 
 .kartotajs-statistika {
@@ -254,3 +214,33 @@ body::before {
     border-color: var(--danger-dark) !important;
 }
 
+@media (max-width: 1180px) {
+    .kartotajs-form-3,
+    .kartotajs-form-4,
+    .kartotajs-row-form,
+    .kartotajs-map-form {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .kartotajs-statistika {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .kartotajs-form-3,
+    .kartotajs-form-4,
+    .kartotajs-row-form,
+    .kartotajs-map-form,
+    .kartotajs-statistika {
+        grid-template-columns: 1fr;
+    }
+
+    .kartotajs-delete-form,
+    .kartotajs-delete-form .admin-poga,
+    .kartotajs-form .admin-poga,
+    .kartotajs-row-form .admin-poga,
+    .kartotajs-map-form .admin-poga {
+        width: 100%;
+    }
+}
