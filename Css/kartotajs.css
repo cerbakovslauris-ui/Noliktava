@@ -183,7 +183,7 @@ body::before {
 .kartotajs-statistika strong {
     display: block;
     margin-top: 8px;
-    color: var(--primary-dark);
+    color: black;
     font-size: 32px;
     font-weight: 950;
     letter-spacing: -1px;
@@ -215,38 +215,6 @@ body::before {
     border-color: var(--danger-dark) !important;
 }
 
-@media (max-width: 1180px) {
-    .kartotajs-form-3,
-    .kartotajs-form-4,
-    .kartotajs-row-form,
-    .kartotajs-map-form {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .kartotajs-statistika {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 760px) {
-    .kartotajs-form-3,
-    .kartotajs-form-4,
-    .kartotajs-row-form,
-    .kartotajs-map-form,
-    .kartotajs-statistika {
-        grid-template-columns: 1fr;
-    }
-
-    .kartotajs-delete-form,
-    .kartotajs-delete-form .admin-poga,
-    .kartotajs-form .admin-poga,
-    .kartotajs-row-form .admin-poga,
-    .kartotajs-map-form .admin-poga {
-        width: 100%;
-    }
-}
-
-
 /* Skaistāks plauktu noslodzes pārskats */
 .plauktu-noslodze {
     padding: 22px !important;
@@ -263,7 +231,7 @@ body::before {
 
 .plauktu-noslodze-virsraksts h3 {
     margin: 0 0 6px !important;
-    color: var(--text);
+    color: black;
     font-size: 26px;
     font-weight: 950;
     letter-spacing: -0.7px;
@@ -283,9 +251,9 @@ body::before {
     min-height: 38px;
     padding: 9px 14px;
     border: 1px solid #febfea;
-    border-radius: 999px;
     background: var(--primary-soft);
-    color: var(--primary-dark);
+    color: var(--primary);
+    border-radius: 999px;
     font-size: 13px;
     font-weight: 900;
     white-space: nowrap;
@@ -303,10 +271,6 @@ body::before {
     padding: 18px;
     border: 1px solid rgba(233, 205, 229, 0.95);
     border-radius: 20px;
-    background:
-        radial-gradient(circle at top right, rgba(246, 83, 159, 0.15), transparent 42%),
-        #ffffff;
-    box-shadow: 0 12px 28px rgba(209, 44, 121, 0.07);
 }
 
 .plaukta-kartite::before {
@@ -316,7 +280,6 @@ body::before {
     top: 0;
     bottom: 0;
     width: 6px;
-    background: linear-gradient(180deg, var(--primary), var(--primary-dark));
 }
 
 .plaukta-kartite-augsa {

@@ -428,9 +428,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new RuntimeException('Pārbaudi kartēšanas datus.');
             }
 
-            $vecaisPlauktsStmt = $pdo->prepare('SELECT plaukts_id FROM preces_plauktos WHERE id = ? LIMIT 1');
-            $vecaisPlauktsStmt->execute([$id]);
-            $vecaisPlauktsId = (int) $vecaisPlauktsStmt->fetchColumn();
+            $vecieDatiStmt = $pdo->prepare('SELECT plaukts_id, daudzums, piezime FROM preces_plauktos WHERE id = ? LIMIT 1');
+            $vecieDatiStmt->execute([$id]);
+            $vecieDati = $vecieDatiStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$vecieDati) {
+                throw new RuntimeException('Prece plauktā netika atrasta.');
+            }
+
+            $vecaisPlauktsId = (int) ($vecieDati['plaukts_id'] ?? 0);
+            $vecaisDaudzums = (int) ($vecieDati['daudzums'] ?? 0);
+            $vecaPiezime = trim((string) ($vecieDati['piezime'] ?? ''));
 
             $plauktsId = atrastVaiIzveidotPlauktu($pdo, $plauktaNosaukums);
 
@@ -445,22 +453,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 dzestTuksuPlauktu($pdo, $vecaisPlauktsId);
             }
 
-            $teksts = 'Preces atrašanās vieta atjaunota.';
-        }
+            $mainitsPlaukts = $vecaisPlauktsId !== $plauktsId;
+            $mainitsDaudzums = $vecaisDaudzums !== $daudzums;
+            $mainitaPiezime = $vecaPiezime !== $piezime;
 
-        if ($action === 'delete_mapping') {
-            $id = (int) ($_POST['id'] ?? 0);
-
-            $plauktsStmt = $pdo->prepare('SELECT plaukts_id FROM preces_plauktos WHERE id = ? LIMIT 1');
-            $plauktsStmt->execute([$id]);
-            $plauktsId = (int) $plauktsStmt->fetchColumn();
-
-            $stmt = $pdo->prepare('DELETE FROM preces_plauktos WHERE id = ?');
-            $stmt->execute([$id]);
-
-            dzestTuksuPlauktu($pdo, $plauktsId);
-
-            $teksts = 'Prece no plaukta noņemta.';
+            if ($mainitsDaudzums && $mainitaPiezime) {
+                $teksts = 'Preces daudzums un apraksts nomainīts.';
+            } elseif ($mainitsDaudzums) {
+                $teksts = 'Preces daudzums nomainīts.';
+            } elseif ($mainitaPiezime) {
+                $teksts = 'Preces piezīme nomainīta.';
+            } elseif ($mainitsPlaukts) {
+                $teksts = 'Preces atrašanās vieta atjaunota.';
+            } else {
+                $teksts = 'Izmaiņas saglabātas.';
+            }
         }
 
         if ($teksts === '') {
@@ -641,7 +648,6 @@ if (hasPdo()) {
                                                 </form>
                                                 <div class="kartotajs-darbibas">
                                                     <button class="admin-poga admin-poga-mainit" type="submit" form="kartotajs-update-<?php echo e($rinda['id']); ?>">Saglabāt</button>
-                                                    <button class="admin-poga admin-poga-dzest" type="submit" form="kartotajs-delete-<?php echo e($rinda['id']); ?>">Dzēst</button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -694,7 +700,6 @@ if (hasPdo()) {
                                 <div class="plaukta-kartite">
                                     <div class="plaukta-kartite-augsa">
                                         <span class="plaukta-nosaukums"><?php echo e($plaukts['nosaukums']); ?></span>
-                                        <i class="fa fa-archive" aria-hidden="true"></i>
                                     </div>
 
                                     <div class="plaukta-dati">
@@ -800,5 +805,24 @@ if (hasPdo()) {
             showPanelFromHash();
         })();
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const zinas = document.querySelectorAll('.admin-ok-zina, .admin-kluda, .message-error');
+
+            zinas.forEach(function (zina) {
+                setTimeout(function () {
+                    zina.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+                    zina.style.opacity = '0';
+                    zina.style.transform = 'translateY(-6px)';
+
+                    setTimeout(function () {
+                        zina.remove();
+                    }, 350);
+                }, 3000);
+            });
+        });
+    </script>
+
 </body>
 </html>

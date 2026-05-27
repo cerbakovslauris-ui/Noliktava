@@ -44,5 +44,24 @@ $irIelogojies = $auth !== null;
             </section>
         </div>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const zinas = document.querySelectorAll('.admin-ok-zina, .admin-kluda, .message-error');
+
+            zinas.forEach(function (zina) {
+                setTimeout(function () {
+                    zina.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+                    zina.style.opacity = '0';
+                    zina.style.transform = 'translateY(-6px)';
+
+                    setTimeout(function () {
+                        zina.remove();
+                    }, 350);
+                }, 3000);
+            });
+        });
+    </script>
+
 </body>
 </html>

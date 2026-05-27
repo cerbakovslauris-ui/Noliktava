@@ -107,7 +107,8 @@ try {
 
         <section class="admin-saturs" aria-live="polite">
             <?php if (is_array($flashZina) && isset($flashZina['teksts'])): ?>
-                <p class="<?php echo ($flashZina['tips'] ?? '') === 'ok' ? 'admin-ok-zina' : 'admin-kluda'; ?>">
+                <?php $flashTips = (string) ($flashZina['tips'] ?? ''); ?>
+                <p class="admin-flash <?php echo $flashTips === 'ok' ? 'admin-ok-zina' : 'admin-kluda'; ?>">
                     <?php echo htmlspecialchars((string) $flashZina['teksts'], ENT_QUOTES, 'UTF-8'); ?>
                 </p>
             <?php endif; ?>
@@ -310,6 +311,14 @@ try {
 
     <script>
         (function () {
+            const flash = document.querySelector('.admin-flash');
+
+            if (flash) {
+                setTimeout(() => {
+                    flash.style.display = 'none';
+                }, 3000);
+            }
+
             const links = Array.from(document.querySelectorAll('.admin-nav-bar a'));
             const panels = Array.from(document.querySelectorAll('[data-panel]'));
 

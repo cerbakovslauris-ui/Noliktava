@@ -28,7 +28,7 @@ try {
 	$stmt = $pdo->prepare('DELETE FROM products WHERE id = ?');
 	$stmt->execute([$id]);
 
-	adminNovirzitArZinu('rediget-preces', 'ok', 'Prece veiksmīgi dzēsta.');
+	adminNovirzitArZinu('rediget-preces', 'ok', 'Prece izdzēsta.');
 } catch (Throwable $e) {
 	adminNovirzitArZinu('rediget-preces', 'kluda', $e->getMessage());
 }

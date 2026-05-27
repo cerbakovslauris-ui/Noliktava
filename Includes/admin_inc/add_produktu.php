@@ -50,7 +50,7 @@ try {
 	$stmt = $pdo->prepare('INSERT INTO products (name, description, quantity, shelf_location) VALUES (?, ?, ?, ?)');
 	$stmt->execute([$name, $description, $quantity, $shelfLocation]);
 
-	adminNovirzitArZinu('pievienot-preces', 'ok', 'Prece veiksmīgi pievienota.');
+	adminNovirzitArZinu('pievienot-preces', 'ok', 'Prece pievienota.');
 } catch (Throwable $e) {
 	adminNovirzitArZinu('pievienot-preces', 'kluda', $e->getMessage());
 }

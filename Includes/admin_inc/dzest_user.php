@@ -25,7 +25,7 @@ try {
 	$dzestStmt = $pdo->prepare('DELETE FROM users WHERE id = :id LIMIT 1');
 	$dzestStmt->execute([':id' => $merkaLietotajaId]);
 
-	adminNovirzitArZinu('lietotaji', 'ok', 'Lietotājs veiksmīgi dzēsts.');
+	adminNovirzitArZinu('lietotaji', 'ok', 'Lietotājs izdzēsts.');
 } catch (Throwable $e) {
 	adminNovirzitArZinu('lietotaji', 'kluda', $e->getMessage());
 }

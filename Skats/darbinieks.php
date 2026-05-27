@@ -2,6 +2,10 @@
 require_once __DIR__ . '/../Includes/log_reg_inc/auth.inc.php';
 $auth = parbauditAutorizaciju('darbinieks');
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 if (!isset($pdo)) {
     $iespejamieDbFaili = [
         __DIR__ . '/../Includes/dbh.inc.php',
@@ -26,13 +30,20 @@ $lietotajaVards = (string)($auth['vards'] ?? $auth['username'] ?? 'Darbinieks');
 $lietotajaId = (int)($auth['id'] ?? $auth['user_id'] ?? 0);
 
 $zina = '';
-$zinaTips = 'success';
+$zinaTips = 'ok';
 
 function cleanText($value) {
     return trim((string)$value);
 }
 
-function redirectWithHash($hash) {
+function redirectWithHash($hash, $teksts = '', $tips = 'ok') {
+    if ($teksts !== '') {
+        $_SESSION['darbinieks_zina'] = [
+            'teksts' => $teksts,
+            'tips' => $tips
+        ];
+    }
+
     header('Location: ' . strtok($_SERVER['REQUEST_URI'], '#') . '#' . $hash);
     exit;
 }
@@ -50,6 +61,12 @@ function normalizeShelfLocation($value) {
     }
 
     return $matches[1] . '-' . $matches[2];
+}
+
+if (!empty($_SESSION['darbinieks_zina'])) {
+    $zina = (string)($_SESSION['darbinieks_zina']['teksts'] ?? '');
+    $zinaTips = (string)($_SESSION['darbinieks_zina']['tips'] ?? 'ok');
+    unset($_SESSION['darbinieks_zina']);
 }
 
 function restoreProductQuantity(PDO $pdo, int $productId, int $quantity): void {
@@ -95,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $stmt = $pdo->prepare('INSERT INTO products (name, description, quantity, shelf_location) VALUES (?, ?, ?, ?)');
             $stmt->execute([$name, $description, $quantity, $shelfLocation]);
-            redirectWithHash('noliktava');
+            redirectWithHash('noliktava', 'Prece pievienota.', 'ok');
         }
 
         if ($action === 'edit_product') {
@@ -115,9 +132,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Daudzums nevar būt negatīvs.');
             }
 
+            $oldStmt = $pdo->prepare('SELECT name, description, quantity, shelf_location FROM products WHERE id = ?');
+            $oldStmt->execute([$id]);
+            $oldProduct = $oldStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$oldProduct) {
+                throw new Exception('Prece nav atrasta.');
+            }
+
             $stmt = $pdo->prepare('UPDATE products SET name = ?, description = ?, quantity = ?, shelf_location = ? WHERE id = ?');
             $stmt->execute([$name, $description, $quantity, $shelfLocation, $id]);
-            redirectWithHash('noliktava');
+
+            $izmainas = [];
+
+            if ((string)$oldProduct['name'] !== $name) {
+                $izmainas[] = 'nosaukums';
+            }
+            if ((string)($oldProduct['description'] ?? '') !== $description) {
+                $izmainas[] = 'apraksts';
+            }
+            if ((int)$oldProduct['quantity'] !== $quantity) {
+                $izmainas[] = 'daudzums';
+            }
+            if ((string)($oldProduct['shelf_location'] ?? '') !== $shelfLocation) {
+                $izmainas[] = 'plaukts';
+            }
+
+            if (empty($izmainas)) {
+                $zinojums = 'Prece saglabāta.';
+            } elseif (count($izmainas) === 1) {
+                if ($izmainas[0] === 'nosaukums') {
+                    $zinojums = 'Preces nosaukums nomainīts.';
+                } elseif ($izmainas[0] === 'apraksts') {
+                    $zinojums = 'Preces apraksts nomainīts.';
+                } elseif ($izmainas[0] === 'daudzums') {
+                    $zinojums = 'Preces daudzums nomainīts.';
+                } else {
+                    $zinojums = 'Preces plaukts nomainīts.';
+                }
+            } else {
+                $teksti = [
+                    'nosaukums' => 'nosaukums',
+                    'apraksts' => 'apraksts',
+                    'daudzums' => 'daudzums',
+                    'plaukts' => 'plaukts'
+                ];
+
+                $mainitieLauki = array_map(function ($lauks) use ($teksti) {
+                    return $teksti[$lauks];
+                }, $izmainas);
+
+                $pedejais = array_pop($mainitieLauki);
+                $zinojums = 'Preces ' . implode(', ', $mainitieLauki) . ' un ' . $pedejais . ' nomainīts.';
+            }
+
+            redirectWithHash('noliktava', $zinojums, 'ok');
         }
 
         if ($action === 'delete_product') {
@@ -137,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $stmt = $pdo->prepare('DELETE FROM products WHERE id = ?');
             $stmt->execute([$id]);
-            redirectWithHash('noliktava');
+            redirectWithHash('noliktava', 'Prece izdzēsta.', 'ok');
         }
 
         if ($action === 'create_order') {
@@ -162,7 +231,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$productId, $lietotajaId, $quantity, 'jauns']);
 
             $pdo->commit();
-            redirectWithHash('pasutijumi');
+            redirectWithHash('pasutijumi', 'Pasūtījums izveidots.', 'ok');
         }
 
         if ($action === 'update_order_status') {
@@ -201,7 +270,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$newStatus, $orderId]);
 
             $pdo->commit();
-            redirectWithHash('pasutijumi');
+            redirectWithHash('pasutijumi', 'Pasūtījuma statuss mainīts.', 'ok');
         }
 
         if ($action === 'delete_order') {
@@ -229,7 +298,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $deleteStmt->execute([$orderId]);
 
             $pdo->commit();
-            redirectWithHash('pasutijumi');
+            redirectWithHash('pasutijumi', 'Pasūtījums izdzēsts.', 'ok');
         }
     } catch (Exception $e) {
         if ($pdo->inTransaction()) {
@@ -237,7 +306,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $zina = $e->getMessage();
-        $zinaTips = 'error';
+        $zinaTips = 'kluda';
     }
 }
 
@@ -344,7 +413,9 @@ $productReport = $productReportStmt->fetchAll(PDO::FETCH_ASSOC);
 
         <section class="admin-saturs" aria-live="polite">
             <?php if ($zina !== ''): ?>
-                <div class="message-error"><?php echo htmlspecialchars($zina, ENT_QUOTES, 'UTF-8'); ?></div>
+                <div class="<?php echo ($zinaTips === 'ok' || $zinaTips === 'success' || $zinaTips === 'delete') ? 'admin-ok-zina' : 'admin-kluda'; ?>">
+                    <?php echo htmlspecialchars($zina, ENT_QUOTES, 'UTF-8'); ?>
+                </div>
             <?php endif; ?>
 
             <article id="pasutijumi" class="admin-panel active" data-panel>
@@ -635,5 +706,24 @@ $productReport = $productReportStmt->fetchAll(PDO::FETCH_ASSOC);
             showPanelFromHash();
         })();
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const zinas = document.querySelectorAll('.admin-ok-zina, .admin-kluda, .message-error');
+
+            zinas.forEach(function (zina) {
+                setTimeout(function () {
+                    zina.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+                    zina.style.opacity = '0';
+                    zina.style.transform = 'translateY(-6px)';
+
+                    setTimeout(function () {
+                        zina.remove();
+                    }, 350);
+                }, 3000);
+            });
+        });
+    </script>
+
 </body>
 </html>
