@@ -198,11 +198,11 @@ try {
                                 </tr>
                                 <tr>
                                     <td><label for="add-quantity">Daudzums</label></td>
-                                    <td><input id="add-quantity" type="number" name="quantity" min="0" value="0" required></td>
+                                    <td><input id="add-quantity" type="number" name="quantity" min="0" max="10 000 000" value="0" placeholder="Max 10000000" required></td>
                                 </tr>
                                 <tr>
                                     <td><label for="add-shelf">Plaukta vieta</label></td>
-                                    <td><input id="add-shelf" type="text" name="shelf_location" placeholder="Piem. A-Z un 1-30" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30"></td>
+                                    <td><input id="add-shelf" type="text" name="shelf_location" placeholder="Piem. A-1 un F-30" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30"></td>
                                 </tr>
                                 <tr>
                                     <td><label for="add-description">Apraksts</label></td>

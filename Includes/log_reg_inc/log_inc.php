@@ -25,8 +25,13 @@ function novirzitPecLomas(?int $roleId, ?string $roleName = null): void
     exit;
 }
 
-$lietotajvards = trim($_POST['lietotajvards'] ?? '');
+$lietotajvardsRaw = (string) ($_POST['lietotajvards'] ?? '');
+$lietotajvards = trim($lietotajvardsRaw);
 $parole = $_POST['parole'] ?? '';
+
+if (preg_match('/\s/', $lietotajvardsRaw) === 1 || preg_match('/\s/', $parole) === 1) {
+    die('Nepareizs lietotajvards vai parole.');
+}
 
 if ($lietotajvards === '' || $parole === '') {
     die('Nepareizs lietotajvards vai parole.');

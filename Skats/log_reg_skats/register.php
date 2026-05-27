@@ -16,7 +16,7 @@
                 <h1>Reģistrēties</h1>
                 <form action="../../Includes/log_reg_inc/reg_inc.php" method="POST">
                     <h3>Lietotājvārds vai vārds</h3>
-                    <input type="text" name="lietotajvards" placeholder='Lietotājvārds vai vārds' pattern="[^0-9]*" title="Lietotājvārdā nedrīkst būt cipari" required>
+                    <input type="text" name="lietotajvards" placeholder='Lietotājvārds vai vārds' pattern="[^0-9\s]*" title="Lietotājvārdā nedrīkst būt cipari un atstarpes" required>
 
                     <h3>Parole</h3>
                     <input type="password" id="parole" name="parole" placeholder='Parole' pattern="\S+" title="Parolē nedrīkst būt atstarpes" required>
@@ -37,6 +37,16 @@
     <script>
         (() => {
             const paroleIevade = document.getElementById('parole');
+            const bezAtstarpemIevades = Array.from(document.querySelectorAll('input[name="lietotajvards"], input[name="parole"], input[name="parole_apstiprinat"]'));
+
+            function notiritAtstarpes(input) {
+                input.value = input.value.replace(/\s+/g, '');
+            }
+
+            bezAtstarpemIevades.forEach((input) => {
+                input.addEventListener('input', () => notiritAtstarpes(input));
+                input.addEventListener('blur', () => notiritAtstarpes(input));
+            });
 
             if (!paroleIevade) {
                 return;
@@ -63,7 +73,7 @@
                 setIzpildits(noteikumi.garums, rakstzimjuSkaits >= 8);
                 setIzpildits(noteikumi.lielais, /[A-ZĀČĒĢĪĶĻŅŠŪŽ]/.test(parole));
                 setIzpildits(noteikumi.cipars, /[0-9]/.test(parole));
-                setIzpildits(noteikumi.specialais, /[^a-zA-ZĀČĒĢĪĶĻŅŠŪŽāčēģīķļņšūž0-9]/.test(parole));
+                setIzpildits(noteikumi.specialais, /[^a-zA-ZĀČĒĢĪĶĻŅŠŪŽāčēģīķļņšūž0-9\s]/.test(parole));
             }
 
             paroleIevade.addEventListener('input', atjaunotParolesNoteikumus);

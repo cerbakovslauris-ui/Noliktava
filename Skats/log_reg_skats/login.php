@@ -16,14 +16,28 @@
                 <h1>Ienākt</h1>
                 <form action="../../Includes/log_reg_inc/log_inc.php" method="POST">
                     <h3>Lietotajvārds</h3>
-                    <input type="text" name="lietotajvards" placeholder='Lietotajvards' required>
+                    <input type="text" name="lietotajvards" placeholder='Lietotajvards' pattern="\S+" title="Lietotājvārdā nedrīkst būt atstarpes" required>
                     <h3>Parole</h3>
-                    <input type="password" name="parole" placeholder='Parole' required>   
+                    <input type="password" name="parole" placeholder='Parole' pattern="\S+" title="Parolē nedrīkst būt atstarpes" required>   
                     <button type="submit"><i class="fa fa-sign-in"></i>Pieteikties</button>
                 </form>
                 <p>Nav konta? <a href="register.php">Reģistrēties</a></p>
             </div>
         </div>
     </main>
+    <script>
+        (() => {
+            const ievades = Array.from(document.querySelectorAll('input[name="lietotajvards"], input[name="parole"]'));
+
+            function notiritAtstarpes(input) {
+                input.value = input.value.replace(/\s+/g, '');
+            }
+
+            ievades.forEach((input) => {
+                input.addEventListener('input', () => notiritAtstarpes(input));
+                input.addEventListener('blur', () => notiritAtstarpes(input));
+            });
+        })();
+    </script>
 </body>
 </html>

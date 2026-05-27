@@ -26,10 +26,15 @@ function novirzitPecLomas(?int $roleId, ?string $roleName = null): void
 }
 
 
-$vards = trim($_POST['lietotajvards'] ?? '');
+$vardsRaw = (string) ($_POST['lietotajvards'] ?? '');
+$vards = trim($vardsRaw);
 $parole = $_POST['parole'] ?? '';
 $paroleApstiprinat = $_POST['parole_apstiprinat'] ?? '';
 $roleId = 4;
+
+if (preg_match('/\s/', $vardsRaw) === 1 || preg_match('/\s/', $parole) === 1 || preg_match('/\s/', $paroleApstiprinat) === 1) {
+        die('Lietotājvārdā un parolē nedrīkst būt atstarpes.');
+}
 
 
 if ($vards === '' || $parole === '' || $paroleApstiprinat === '') {
