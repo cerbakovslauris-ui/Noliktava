@@ -672,33 +672,44 @@ if (hasPdo()) {
                     </div>
                 </div>
 
-                <div class="admin-tabula-wrap">
-                    <h3>Plauktu noslodze</h3>
+                <div class="admin-tabula-wrap plauktu-noslodze">
+                    <div class="plauktu-noslodze-virsraksts">
+                        <div>
+                            <h3>Plauktu noslodze</h3>
+                            <p>Ātrs pārskats par katru aizņemto plauktu.</p>
+                        </div>
+                        <span><?php echo e(count($plaukti)); ?> plaukti</span>
+                    </div>
+
                     <?php if (!$plaukti): ?>
                         <p>Nav datu atskaitei.</p>
                     <?php else: ?>
-                        <table class="admin-tabula">
-                            <thead>
-                                <tr>
-                                    <th>Plaukts</th>
-                                    <th>Preču ieraksti</th>
-                                    <th>Daudzums</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($plaukti as $plaukts): ?>
-                                    <?php
-                                    $ieraksti = array_filter($kartesanas, fn($r) => (int) $r['plaukts_id'] === (int) $plaukts['id']);
-                                    $daudzums = array_sum(array_map(fn($r) => (int) $r['daudzums'], $ieraksti));
-                                    ?>
-                                    <tr>
-                                        <td><?php echo e($plaukts['nosaukums']); ?></td>
-                                        <td><?php echo count($ieraksti); ?></td>
-                                        <td><?php echo e($daudzums); ?></td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                        <div class="plauktu-noslodze-grid">
+                            <?php foreach ($plaukti as $plaukts): ?>
+                                <?php
+                                $ieraksti = array_filter($kartesanas, fn($r) => (int) $r['plaukts_id'] === (int) $plaukts['id']);
+                                $ierakstuSkaits = count($ieraksti);
+                                $daudzums = array_sum(array_map(fn($r) => (int) $r['daudzums'], $ieraksti));
+                                ?>
+                                <div class="plaukta-kartite">
+                                    <div class="plaukta-kartite-augsa">
+                                        <span class="plaukta-nosaukums"><?php echo e($plaukts['nosaukums']); ?></span>
+                                        <i class="fa fa-archive" aria-hidden="true"></i>
+                                    </div>
+
+                                    <div class="plaukta-dati">
+                                        <div>
+                                            <span>Preču ieraksti</span>
+                                            <strong><?php echo e($ierakstuSkaits); ?></strong>
+                                        </div>
+                                        <div>
+                                            <span>Daudzums</span>
+                                            <strong><?php echo e($daudzums); ?></strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
                     <?php endif; ?>
                 </div>
             </article>

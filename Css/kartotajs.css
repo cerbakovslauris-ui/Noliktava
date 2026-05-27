@@ -246,69 +246,154 @@ body::before {
     }
 }
 
-/* Papildu responsīvais dizains */
-@media (max-width: 1180px) {
-    .kartotajs-darbibas {
-        margin-top: 0;
-        flex-wrap: wrap;
-    }
 
-    .kartotajs-table-input,
-    .kartotajs-daudzums-input {
-        min-width: 0;
-    }
+/* Skaistāks plauktu noslodzes pārskats */
+.plauktu-noslodze {
+    padding: 22px !important;
+    overflow: visible !important;
 }
 
-@media (max-width: 900px) {
-    .kartotajs-form-3,
-    .kartotajs-form-4,
-    .kartotajs-row-form,
-    .kartotajs-map-form {
-        grid-template-columns: 1fr;
-    }
+.plauktu-noslodze-virsraksts {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
 
-    .kartotajs-darbibas,
-    .kartotajs-delete-form {
-        width: 100%;
-    }
+.plauktu-noslodze-virsraksts h3 {
+    margin: 0 0 6px !important;
+    color: var(--text);
+    font-size: 26px;
+    font-weight: 950;
+    letter-spacing: -0.7px;
+}
 
-    .kartotajs-darbibas .admin-poga,
-    .kartotajs-delete-form .admin-poga {
-        width: 100%;
-    }
+.plauktu-noslodze-virsraksts p {
+    margin: 0 !important;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 700;
+}
 
-    .kartotajs-tabula {
-        min-width: 760px;
+.plauktu-noslodze-virsraksts > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 9px 14px;
+    border: 1px solid #febfea;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-size: 13px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.plauktu-noslodze-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    gap: 14px;
+}
+
+.plaukta-kartite {
+    position: relative;
+    overflow: hidden;
+    padding: 18px;
+    border: 1px solid rgba(233, 205, 229, 0.95);
+    border-radius: 20px;
+    background:
+        radial-gradient(circle at top right, rgba(246, 83, 159, 0.15), transparent 42%),
+        #ffffff;
+    box-shadow: 0 12px 28px rgba(209, 44, 121, 0.07);
+}
+
+.plaukta-kartite::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: linear-gradient(180deg, var(--primary), var(--primary-dark));
+}
+
+.plaukta-kartite-augsa {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.plaukta-nosaukums {
+    color: var(--text);
+    font-size: 30px;
+    font-weight: 950;
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.plaukta-kartite-augsa i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 18px;
+}
+
+.plaukta-dati {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.plaukta-dati div {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.82);
+}
+
+.plaukta-dati span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.plaukta-dati strong {
+    display: block;
+    color: var(--text);
+    font-size: 24px;
+    font-weight: 950;
+    line-height: 1.1;
+    word-break: break-word;
+}
+
+@media (max-width: 1180px) {
+    .plauktu-noslodze-grid {
+        grid-template-columns: repeat(2, minmax(220px, 1fr));
     }
 }
 
 @media (max-width: 760px) {
-    .kartotajs-statistika div {
-        padding: 15px;
+    .plauktu-noslodze-virsraksts {
+        flex-direction: column;
     }
 
-    .kartotajs-statistika strong {
-        font-size: 28px;
+    .plauktu-noslodze-grid,
+    .plaukta-dati {
+        grid-template-columns: 1fr;
     }
 
-    .kartotajs-form input,
-    .kartotajs-form select,
-    .kartotajs-row-form input,
-    .kartotajs-row-form select,
-    .kartotajs-map-form input,
-    .kartotajs-map-form select,
-    .kartotajs-table-input {
-        min-height: 42px;
-        font-size: 13px;
-    }
-}
-
-@media (max-width: 520px) {
-    .kartotajs-statistika div {
-        border-radius: 14px;
-    }
-
-    .kartotajs-statistika strong {
-        font-size: 24px;
+    .plaukta-nosaukums {
+        font-size: 26px;
     }
 }

@@ -487,137 +487,40 @@ textarea::placeholder {
     font-weight: 900;
 }
 
-/* Responsīvais dizains */
-@media (max-width: 1180px) {
-    .admin-lapa {
-        grid-template-columns: 230px minmax(0, 1fr);
-        gap: 18px;
-        padding: 22px;
-    }
 
-    .admin-saturs,
-    .forma-kaste,
-    .tabula-kaste {
-        padding: 20px;
-    }
 
-    .edit-form {
-        grid-template-columns: 1fr 1fr;
-    }
+/* Izveidot jaunu pasūtījumu vienā rindā */
+.pasutijums-form {
+    display: grid;
+    grid-template-columns: minmax(280px, 1.4fr) minmax(180px, 0.8fr) auto;
+    gap: 16px;
+    align-items: end;
+}
 
-    .atskaite-kopsavilkums {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+.pasutijums-form .forma-rinda {
+    display: contents;
+    margin: 0;
+}
+
+.pasutijums-form .poga {
+    width: auto;
+    min-width: 180px;
+    margin: 0;
+    white-space: nowrap;
 }
 
 @media (max-width: 900px) {
-    .headers {
-        min-height: auto;
-        padding: 16px;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .log_reg {
-        position: static;
-        transform: none;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .admin-lapa {
-        grid-template-columns: 1fr;
-        padding: 16px;
-    }
-
-    .admin-nav-bar {
-        position: static;
-    }
-
-    .admin-nav-bar ul {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .forma-rinda,
-    .edit-form,
-    .atskaite-kopsavilkums {
+    .pasutijums-form {
         grid-template-columns: 1fr;
     }
 
-    .tabula td .edit-rinda,
-    .tabula td .edit-rinda form,
-    .edit-rinda {
-        flex-wrap: wrap;
-    }
-
-    .tabula td .edit-rinda form,
-    .tabula td .edit-rinda .status-select,
-    .tabula td .edit-rinda .poga,
-    .poga,
-    .poga-dzest {
-        width: 100%;
-    }
-}
-
-@media (max-width: 760px) {
-    .headers {
-        padding: 14px;
-    }
-
-    .name h1 {
-        font-size: 28px;
-    }
-
-    .admin-lapa {
-        padding: 12px;
-    }
-
-    .admin-nav-bar,
-    .admin-saturs,
-    .forma-kaste,
-    .tabula-kaste {
-        border-radius: 18px;
-    }
-
-    .admin-nav-bar ul {
+    .pasutijums-form .forma-rinda {
+        display: grid;
         grid-template-columns: 1fr;
+        gap: 16px;
     }
 
-    .tabula {
-        min-width: 720px;
-    }
-}
-
-@media (max-width: 520px) {
-    .log_reg {
+    .pasutijums-form .poga {
         width: 100%;
-    }
-
-    .log_reg a,
-    .user {
-        width: 100%;
-        max-width: none;
-    }
-
-    .admin-saturs,
-    .forma-kaste,
-    .tabula-kaste,
-    .admin-nav-bar {
-        padding: 14px;
-    }
-
-    input,
-    textarea,
-    select,
-    .status-select,
-    .poga {
-        min-height: 42px;
-        font-size: 13px;
-    }
-
-    .tabula th,
-    .tabula td {
-        padding: 11px;
-        font-size: 13px;
     }
 }

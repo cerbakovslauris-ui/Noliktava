@@ -353,7 +353,7 @@ $productReport = $productReportStmt->fetchAll(PDO::FETCH_ASSOC);
 
                 <div class="forma-kaste">
                     <h3>Izveidot jaunu pasūtījumu</h3>
-                    <form method="post">
+                    <form method="post" class="pasutijums-form">
                         <input type="hidden" name="action" value="create_order">
                         <div class="forma-rinda">
                             <div>
