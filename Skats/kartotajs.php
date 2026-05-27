@@ -161,6 +161,70 @@ function dzestTuksuPlauktu(PDO $pdo, int $plauktsId): void
     }
 }
 
+function pirmaisBrivaisPlaukts(PDO $pdo): string
+{
+    $aiznemtie = [];
+
+    $stmt = $pdo->query('SELECT pl.nosaukums FROM preces_plauktos pp INNER JOIN plaukti pl ON pl.id = pp.plaukts_id');
+    $nosaukumi = $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+
+    foreach ($nosaukumi as $nosaukums) {
+        try {
+            $aiznemtie[normalizePlauktaNosaukums((string) $nosaukums)] = true;
+        } catch (Throwable $e) {
+            // Ignorējam bojātus vēsturiskus ierakstus, lai sinhronizācija turpinās.
+        }
+    }
+
+    foreach (range('A', 'F') as $burts) {
+        for ($numurs = 1; $numurs <= 30; $numurs++) {
+            $nosaukums = $burts . '-' . $numurs;
+            if (!isset($aiznemtie[$nosaukums])) {
+                return $nosaukums;
+            }
+        }
+    }
+
+    throw new RuntimeException('Nav brīvu plauktu diapazonā A-1 līdz F-30.');
+}
+
+function pieskirtPlauktusNeiekartotamPrecem(PDO $pdo, string $produktuTabula, bool $irShelfLocationKolonna, string $produktaDaudzumaKolonna = 'quantity'): int
+{
+    $daudzumaKolonnaSql = $produktaDaudzumaKolonna !== '' ? 'p.' . $produktaDaudzumaKolonna : '0';
+
+    $sql = 'SELECT p.id AS product_id, ' . $daudzumaKolonnaSql . ' AS product_daudzums
+            FROM ' . $produktuTabula . ' p
+            LEFT JOIN preces_plauktos pp ON pp.product_id = p.id
+            WHERE pp.id IS NULL
+            ORDER BY p.id ASC';
+    $rindas = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+    $pievienoti = 0;
+
+    foreach ($rindas as $rinda) {
+        $productId = (int) ($rinda['product_id'] ?? 0);
+        if ($productId <= 0) {
+            continue;
+        }
+
+        $plauktaNosaukums = pirmaisBrivaisPlaukts($pdo);
+        $plauktsId = atrastVaiIzveidotPlauktu($pdo, $plauktaNosaukums);
+        $daudzums = max(0, (int) ($rinda['product_daudzums'] ?? 0));
+
+        $insert = $pdo->prepare('INSERT INTO preces_plauktos (product_id, plaukts_id, daudzums, piezime) VALUES (?, ?, ?, ?)');
+        $insert->execute([$productId, $plauktsId, $daudzums, 'Automātiski piešķirts']);
+
+        if ($irShelfLocationKolonna) {
+            $update = $pdo->prepare('UPDATE ' . $produktuTabula . ' SET shelf_location = ? WHERE id = ?');
+            $update->execute([$plauktaNosaukums, $productId]);
+        }
+
+        $pievienoti++;
+    }
+
+    return $pievienoti;
+}
+
 
 function sakoptKartotajaDatus(PDO $pdo, ?string $produktuTabula = null): void
 {
@@ -256,6 +320,16 @@ $produktaAprakstaKolonna = pirmaKolonna($produktuKolonnas, ['description', 'apra
 
 if (hasPdo()) {
     sakoptKartotajaDatus($pdo, $produktuTabula);
+
+    if ($produktuTabula) {
+        try {
+            $irShelfLocationKolonna = in_array('shelf_location', $produktuKolonnas, true);
+            $daudzumaKolonna = in_array($produktaDaudzumaKolonna, $produktuKolonnas, true) ? $produktaDaudzumaKolonna : '';
+            pieskirtPlauktusNeiekartotamPrecem($pdo, $produktuTabula, $irShelfLocationKolonna, $daudzumaKolonna);
+        } catch (Throwable $e) {
+            $kluda = $kluda ?: 'Neizdevās automātiski piešķirt plauktus jaunajām precēm: ' . $e->getMessage();
+        }
+    }
 }
 
 $flashZina = $_SESSION['kartotajs_flash'] ?? null;

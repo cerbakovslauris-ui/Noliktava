@@ -37,12 +37,6 @@ function redirectWithHash($hash) {
     exit;
 }
 
-/*
-    Plaukta vietas noteikumi:
-    - burts tikai no A līdz F
-    - numurs tikai no 1 līdz 30
-    - lietotājs drīkst ievadīt A12 vai A-12, bet sistēma saglabā kā A-12
-*/
 function normalizeShelfLocation($value) {
     $value = strtoupper(trim((string)$value));
     $value = str_replace(' ', '', $value);
@@ -197,10 +191,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $productId = (int)$order['product_id'];
             $quantity = (int)$order['quantity'];
 
-            /*
-                Ja pasūtījumu atceļ, preces tiek atgrieztas noliktavā.
-                Ja no "atcelts" pārslēdz atpakaļ uz aktīvu statusu, preces atkal tiek noņemtas no noliktavas.
-            */
             if ($oldStatus !== 'atcelts' && $newStatus === 'atcelts') {
                 restoreProductQuantity($pdo, $productId, $quantity);
             } elseif ($oldStatus === 'atcelts' && $newStatus !== 'atcelts') {
@@ -231,10 +221,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Pasūtījums nav atrasts.');
             }
 
-            /*
-                Dzēšot pasūtījumu, noliktavas atlikums jāatjauno,
-                ja pasūtījums vēl nebija atcelts.
-            */
             if ((string)$order['status'] !== 'atcelts') {
                 restoreProductQuantity($pdo, (int)$order['product_id'], (int)$order['quantity']);
             }
@@ -572,6 +558,51 @@ $productReport = $productReportStmt->fetchAll(PDO::FETCH_ASSOC);
             const links = Array.from(document.querySelectorAll('.admin-nav-bar a'));
             const panels = Array.from(document.querySelectorAll('[data-panel]'));
 
+            function normalizeShelfLocation(value) {
+                const cleaned = value.toUpperCase().replace(/\s+/g, '').replace(/[^A-F0-9-]/g, '');
+                const match = cleaned.match(/^([A-F])-?(\d{0,2})/);
+
+                if (!match) {
+                    return cleaned.slice(0, 1);
+                }
+
+                const letter = match[1];
+                let digits = match[2] || '';
+
+                if (digits !== '') {
+                    let number = parseInt(digits, 10);
+
+                    if (Number.isNaN(number)) {
+                        return letter;
+                    }
+
+                    if (number > 30) {
+                        number = 30;
+                    }
+
+                    digits = String(number);
+                    return letter + '-' + digits;
+                }
+
+                return letter;
+            }
+
+            function validateShelfInput(input) {
+                const value = input.value.trim();
+
+                if (value === '') {
+                    input.setCustomValidity('');
+                    return;
+                }
+
+                if (!/^([A-F])-?([1-9]|[12][0-9]|30)$/.test(value)) {
+                    input.setCustomValidity('Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30');
+                    return;
+                }
+
+                input.setCustomValidity('');
+            }
+
             function showPanelFromHash() {
                 const hash = window.location.hash || '#pasutijumi';
                 const targetId = hash.replace('#', '');
@@ -585,6 +616,20 @@ $productReport = $productReportStmt->fetchAll(PDO::FETCH_ASSOC);
                     link.classList.toggle('active', link.getAttribute('href') === '#' + targetPanel.id);
                 });
             }
+
+            document.querySelectorAll('input[name="shelf_location"]').forEach((input) => {
+                input.addEventListener('input', () => {
+                    input.value = normalizeShelfLocation(input.value);
+                    validateShelfInput(input);
+                });
+
+                input.addEventListener('blur', () => {
+                    input.value = normalizeShelfLocation(input.value);
+                    validateShelfInput(input);
+                });
+
+                validateShelfInput(input);
+            });
 
             window.addEventListener('hashchange', showPanelFromHash);
             showPanelFromHash();

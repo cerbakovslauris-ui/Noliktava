@@ -10,18 +10,39 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 	exit;
 }
 
-$name = trim((string) ($_POST['name'] ?? ''));
-$description = trim((string) ($_POST['description'] ?? ''));
+function cleanText(string $value): string
+{
+	return trim($value);
+}
+
+$name = cleanText((string) ($_POST['name'] ?? ''));
+$description = cleanText((string) ($_POST['description'] ?? ''));
 $quantity = (int) ($_POST['quantity'] ?? 0);
-$shelfLocation = trim((string) ($_POST['shelf_location'] ?? ''));
+$shelfLocation = cleanText((string) ($_POST['shelf_location'] ?? ''));
 
 try {
+	if (!isset($pdo) || !($pdo instanceof PDO)) {
+		throw new RuntimeException('Nav atrasts datubāzes pieslēgums.');
+	}
+
 	if ($name === '') {
 		throw new RuntimeException('Preces nosaukums nedrīkst būt tukšs.');
 	}
 
+	if (mb_strlen($name, 'UTF-8') > 150) {
+		throw new RuntimeException('Preces nosaukums ir pārāk garš (maksimāli 150 simboli).');
+	}
+
+	if (mb_strlen($description, 'UTF-8') > 5000) {
+		throw new RuntimeException('Preces apraksts ir pārāk garš (maksimāli 5000 simboli).');
+	}
+
 	if ($quantity < 0) {
 		throw new RuntimeException('Daudzums nevar būt negatīvs.');
+	}
+
+	if ($quantity > 1000000000) {
+		throw new RuntimeException('Daudzums ir pārāk liels.');
 	}
 
 	$shelfLocation = normalizeShelfLocation($shelfLocation);

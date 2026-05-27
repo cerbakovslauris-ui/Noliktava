@@ -321,6 +321,51 @@ try {
             const links = Array.from(document.querySelectorAll('.admin-nav-bar a'));
             const panels = Array.from(document.querySelectorAll('[data-panel]'));
 
+            function normalizeShelfLocation(value) {
+                const cleaned = value.toUpperCase().replace(/\s+/g, '').replace(/[^A-F0-9-]/g, '');
+                const match = cleaned.match(/^([A-F])-?(\d{0,2})/);
+
+                if (!match) {
+                    return cleaned.slice(0, 1);
+                }
+
+                const letter = match[1];
+                let digits = match[2] || '';
+
+                if (digits !== '') {
+                    let number = parseInt(digits, 10);
+
+                    if (Number.isNaN(number)) {
+                        return letter;
+                    }
+
+                    if (number > 30) {
+                        number = 30;
+                    }
+
+                    digits = String(number);
+                    return letter + '-' + digits;
+                }
+
+                return letter;
+            }
+
+            function validateShelfInput(input) {
+                const value = input.value.trim();
+
+                if (value === '') {
+                    input.setCustomValidity('');
+                    return;
+                }
+
+                if (!/^([A-F])-?([1-9]|[12][0-9]|30)$/.test(value)) {
+                    input.setCustomValidity('Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30');
+                    return;
+                }
+
+                input.setCustomValidity('');
+            }
+
             function showPanelFromHash() {
                 const hash = window.location.hash || '#lietotaji';
                 const targetId = hash.replace('#', '');
@@ -334,6 +379,20 @@ try {
                     link.classList.toggle('active', link.getAttribute('href') === '#' + targetPanel.id);
                 });
             }
+
+            document.querySelectorAll('input[name="shelf_location"]').forEach((input) => {
+                input.addEventListener('input', () => {
+                    input.value = normalizeShelfLocation(input.value);
+                    validateShelfInput(input);
+                });
+
+                input.addEventListener('blur', () => {
+                    input.value = normalizeShelfLocation(input.value);
+                    validateShelfInput(input);
+                });
+
+                validateShelfInput(input);
+            });
 
             window.addEventListener('hashchange', showPanelFromHash);
             showPanelFromHash();
