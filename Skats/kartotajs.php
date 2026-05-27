@@ -133,6 +133,19 @@ function atrastVaiIzveidotPlauktu(PDO $pdo, string $nosaukums): int
     return (int) $pdo->lastInsertId();
 }
 
+function plauktsJauIzmantots(PDO $pdo, int $plauktsId, int $iznemotKartesanasId = 0): bool
+{
+    if ($iznemotKartesanasId > 0) {
+        $stmt = $pdo->prepare('SELECT id FROM preces_plauktos WHERE plaukts_id = ? AND id <> ? LIMIT 1');
+        $stmt->execute([$plauktsId, $iznemotKartesanasId]);
+    } else {
+        $stmt = $pdo->prepare('SELECT id FROM preces_plauktos WHERE plaukts_id = ? LIMIT 1');
+        $stmt->execute([$plauktsId]);
+    }
+
+    return $stmt->fetchColumn() !== false;
+}
+
 function izveidotKartotajaTabulas(): void
 {
     if (!hasPdo()) {
@@ -232,6 +245,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new RuntimeException('Izvēlies preci un ievadi plauktu.');
             }
 
+            if (plauktsJauIzmantots($pdo, $plauktsId)) {
+                throw new RuntimeException('Šis plaukts jau ir izmantots. Izvēlies citu plauktu.');
+            }
+
             $stmt = $pdo->prepare('INSERT INTO preces_plauktos (product_id, plaukts_id, daudzums, piezime) VALUES (?, ?, ?, ?)');
             $stmt->execute([$productId, $plauktsId, $daudzums, $piezime]);
             $teksts = 'Prece piesaistīta plauktam.';
@@ -246,6 +263,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($id <= 0) {
                 throw new RuntimeException('Pārbaudi kartēšanas datus.');
+            }
+
+            if (plauktsJauIzmantots($pdo, $plauktsId, $id)) {
+                throw new RuntimeException('Šis plaukts jau ir izmantots citai precei. Izvēlies citu plauktu.');
             }
 
             $stmt = $pdo->prepare('UPDATE preces_plauktos SET plaukts_id = ?, daudzums = ?, piezime = ? WHERE id = ?');
@@ -321,6 +342,42 @@ if (hasPdo()) {
     <link rel="stylesheet" href="../Css/admin.css">
     <link rel="stylesheet" href="../Css/kartotajs.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <style>
+        .kartotajs-map-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .kartotajs-map-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 0;
+        }
+
+        .kartotajs-delete-form {
+            display: none;
+        }
+
+        .kartotajs-darbibas {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .admin-poga-dzest {
+            background: #d9365f;
+        }
+
+        .admin-poga-dzest:hover {
+            background: #b91f46;
+        }
+    </style>
 </head>
 <body>
     <header class="headers">
@@ -375,7 +432,7 @@ if (hasPdo()) {
                             </div>
                             <div>
                                 <label>Plaukts</label>
-                                <input class="plaukta-ievade" type="text" name="plaukts" placeholder="Piemēram: A-12" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" required>
+                                <input class="plaukta-ievade" type="text" name="plaukts" placeholder="Piemēram: A-12" data-kartesanas-id="0" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" required>
                             </div>
                             <div>
                                 <label>Daudzums</label>
@@ -408,20 +465,22 @@ if (hasPdo()) {
                                     <?php foreach ($kartesanas as $rinda): ?>
                                         <tr>
                                             <td><?php echo e($rinda['preces_nosaukums']); ?></td>
-                                            <td colspan="4">
-                                                <form class="kartotajs-map-form" method="post">
+                                            <td colspan="4" class="kartotajs-map-cell">
+                                                <form id="kartotajs-update-<?php echo e($rinda['id']); ?>" class="kartotajs-map-form" method="post">
                                                     <input type="hidden" name="action" value="update_mapping">
                                                     <input type="hidden" name="id" value="<?php echo e($rinda['id']); ?>">
-                                                    <input class="plaukta-ievade" type="text" name="plaukts" value="<?php echo e($rinda['plaukts_nosaukums']); ?>" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" required>
+                                                    <input class="plaukta-ievade" type="text" name="plaukts" value="<?php echo e($rinda['plaukts_nosaukums']); ?>" data-kartesanas-id="<?php echo e($rinda['id']); ?>" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" required>
                                                     <input type="number" name="daudzums" min="0" value="<?php echo e($rinda['daudzums']); ?>">
                                                     <input type="text" name="piezime" value="<?php echo e($rinda['piezime'] ?? ''); ?>" placeholder="Piezīme">
-                                                    <button class="admin-poga admin-poga-mainit" type="submit">Saglabāt</button>
                                                 </form>
-                                                <form class="kartotajs-delete-form" method="post" onsubmit="return confirm('Noņemt preci no plaukta?');">
+                                                <form id="kartotajs-delete-<?php echo e($rinda['id']); ?>" class="kartotajs-delete-form" method="post" onsubmit="return confirm('Dzēst šo piesaisti?');">
                                                     <input type="hidden" name="action" value="delete_mapping">
                                                     <input type="hidden" name="id" value="<?php echo e($rinda['id']); ?>">
-                                                    <button class="admin-poga admin-poga-dzest" type="submit">Noņemt</button>
                                                 </form>
+                                                <div class="kartotajs-darbibas">
+                                                    <button class="admin-poga admin-poga-mainit" type="submit" form="kartotajs-update-<?php echo e($rinda['id']); ?>">Saglabāt</button>
+                                                    <button class="admin-poga admin-poga-dzest" type="submit" form="kartotajs-delete-<?php echo e($rinda['id']); ?>">Dzēst</button>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -532,14 +591,36 @@ if (hasPdo()) {
                 return burts;
             }
 
+            const aiznemtiePlaukti = new Map([
+                <?php foreach ($kartesanas as $rinda): ?>
+                    ['<?php echo e(strtoupper((string) $rinda['plaukts_nosaukums'])); ?>', '<?php echo e($rinda['id']); ?>'],
+                <?php endforeach; ?>
+            ]);
+
+            function parbauditVaiPlauktsBrivs(input) {
+                const vertiba = sakartotPlauktu(input.value);
+                const pasreizejaisId = input.dataset.kartesanasId || '0';
+                const aiznemtsArId = aiznemtiePlaukti.get(vertiba);
+
+                if (vertiba !== '' && aiznemtsArId && aiznemtsArId !== pasreizejaisId) {
+                    input.setCustomValidity('Šis plaukts jau ir izmantots. Izvēlies citu plauktu.');
+                } else {
+                    input.setCustomValidity('');
+                }
+            }
+
             document.querySelectorAll('.plaukta-ievade').forEach((input) => {
                 input.addEventListener('input', () => {
                     input.value = sakartotPlauktu(input.value);
+                    parbauditVaiPlauktsBrivs(input);
                 });
 
                 input.addEventListener('blur', () => {
                     input.value = sakartotPlauktu(input.value);
+                    parbauditVaiPlauktsBrivs(input);
                 });
+
+                parbauditVaiPlauktsBrivs(input);
             });
 
             window.addEventListener('hashchange', showPanelFromHash);
