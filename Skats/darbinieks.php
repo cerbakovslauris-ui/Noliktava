@@ -447,7 +447,7 @@ $productReport = $productReportStmt->fetchAll(PDO::FETCH_ASSOC);
                             </div>
                             <div>
                                 <label>Daudzums</label>
-                                <input type="number" name="quantity" min="0" value="0" required>
+                                <input type="number" name="quantity" min="0" max="10000000" value="0" placeholder="Max 10000000" required>
                             </div>
                             <div>
                                 <label>Plaukta vieta</label>
