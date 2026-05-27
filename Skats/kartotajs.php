@@ -5,11 +5,7 @@ $auth = parbauditAutorizaciju('kartotajs');
 $lietotajaVards = (string) ($auth['vards'] ?? 'Kartotājs');
 $lietotajaVardsRedzams = $lietotajaVards;
 
-/*
-    Šis fails izmanto PDO savienojumu $pdo.
-    Ja tavā projektā datu bāzes pieslēguma fails saucas citādi,
-    pievieno to zemāk $dbFaili sarakstā.
-*/
+
 $dbFaili = [
     __DIR__ . '/../Includes/db.inc.php',
     __DIR__ . '/../Includes/dbh.inc.php',
@@ -225,6 +221,55 @@ function pieskirtPlauktusNeiekartotamPrecem(PDO $pdo, string $produktuTabula, bo
     return $pievienoti;
 }
 
+function sinhronizetDarbiniekaPlauktuIevadi(PDO $pdo, string $produktuTabula, bool $irShelfLocationKolonna, string $produktaDaudzumaKolonna = 'quantity'): int
+{
+    if (!$irShelfLocationKolonna) {
+        return 0;
+    }
+
+    $daudzumaKolonnaSql = $produktaDaudzumaKolonna !== '' ? 'p.' . $produktaDaudzumaKolonna : '0';
+
+    $sql = 'SELECT p.id AS product_id, p.shelf_location AS shelf_location, ' . $daudzumaKolonnaSql . ' AS product_daudzums
+            FROM ' . $produktuTabula . ' p
+            LEFT JOIN preces_plauktos pp ON pp.product_id = p.id
+            WHERE pp.id IS NULL
+              AND p.shelf_location IS NOT NULL
+              AND TRIM(p.shelf_location) <> ""
+            ORDER BY p.id ASC';
+    $rindas = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+    $pievienoti = 0;
+
+    foreach ($rindas as $rinda) {
+        $productId = (int) ($rinda['product_id'] ?? 0);
+        if ($productId <= 0) {
+            continue;
+        }
+
+        $shelfLocation = (string) ($rinda['shelf_location'] ?? '');
+
+        try {
+            $plauktaNosaukums = normalizePlauktaNosaukums($shelfLocation);
+        } catch (Throwable $e) {
+            continue;
+        }
+
+        $plauktsId = atrastVaiIzveidotPlauktu($pdo, $plauktaNosaukums);
+
+        if (plauktsJauIzmantots($pdo, $plauktsId)) {
+            continue;
+        }
+
+        $daudzums = max(0, (int) ($rinda['product_daudzums'] ?? 0));
+        $insert = $pdo->prepare('INSERT INTO preces_plauktos (product_id, plaukts_id, daudzums, piezime) VALUES (?, ?, ?, ?)');
+        $insert->execute([$productId, $plauktsId, $daudzums, 'Sinhronizets no darbinieka plaukta vietas']);
+
+        $pievienoti++;
+    }
+
+    return $pievienoti;
+}
+
 
 function sakoptKartotajaDatus(PDO $pdo, ?string $produktuTabula = null): void
 {
@@ -325,9 +370,9 @@ if (hasPdo()) {
         try {
             $irShelfLocationKolonna = in_array('shelf_location', $produktuKolonnas, true);
             $daudzumaKolonna = in_array($produktaDaudzumaKolonna, $produktuKolonnas, true) ? $produktaDaudzumaKolonna : '';
-            pieskirtPlauktusNeiekartotamPrecem($pdo, $produktuTabula, $irShelfLocationKolonna, $daudzumaKolonna);
+            sinhronizetDarbiniekaPlauktuIevadi($pdo, $produktuTabula, $irShelfLocationKolonna, $daudzumaKolonna);
         } catch (Throwable $e) {
-            $kluda = $kluda ?: 'Neizdevās automātiski piešķirt plauktus jaunajām precēm: ' . $e->getMessage();
+            $kluda = $kluda ?: 'Neizdevās sinhronizēt darbinieka norādītās plaukta vietas: ' . $e->getMessage();
         }
     }
 }
