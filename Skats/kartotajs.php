@@ -29,6 +29,17 @@ foreach ($dbFaili as $fails) {
 $zina = '';
 $kluda = '';
 
+function kartotajsNovirzitArZinu(string $hash, string $tips, string $teksts): void
+{
+    $_SESSION['kartotajs_flash'] = [
+        'tips' => $tips,
+        'teksts' => $teksts,
+    ];
+
+    header('Location: kartotajs.php#' . $hash);
+    exit;
+}
+
 function e($value): string
 {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -189,8 +200,25 @@ $produktaNosaukumaKolonna = pirmaKolonna($produktuKolonnas, ['name', 'nosaukums'
 $produktaDaudzumaKolonna = pirmaKolonna($produktuKolonnas, ['quantity', 'daudzums', 'stock', 'skaits'], 'quantity');
 $produktaAprakstaKolonna = pirmaKolonna($produktuKolonnas, ['description', 'apraksts', 'piezime'], 'description');
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && hasPdo()) {
+$flashZina = $_SESSION['kartotajs_flash'] ?? null;
+unset($_SESSION['kartotajs_flash']);
+
+if (is_array($flashZina) && isset($flashZina['teksts'])) {
+    if (($flashZina['tips'] ?? '') === 'ok') {
+        $zina = (string) $flashZina['teksts'];
+    } else {
+        $kluda = (string) $flashZina['teksts'];
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!hasPdo()) {
+        kartotajsNovirzitArZinu('kartesana', 'kluda', 'Nav datu bāzes pieslēguma. Mēģini vēlreiz vēlāk.');
+    }
+
     $action = $_POST['action'] ?? '';
+    $teksts = '';
+    $tips = 'ok';
 
     try {
         if ($action === 'add_mapping') {
@@ -206,7 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && hasPdo()) {
 
             $stmt = $pdo->prepare('INSERT INTO preces_plauktos (product_id, plaukts_id, daudzums, piezime) VALUES (?, ?, ?, ?)');
             $stmt->execute([$productId, $plauktsId, $daudzums, $piezime]);
-            $zina = 'Prece piesaistīta plauktam.';
+            $teksts = 'Prece piesaistīta plauktam.';
         }
 
         if ($action === 'update_mapping') {
@@ -222,18 +250,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && hasPdo()) {
 
             $stmt = $pdo->prepare('UPDATE preces_plauktos SET plaukts_id = ?, daudzums = ?, piezime = ? WHERE id = ?');
             $stmt->execute([$plauktsId, $daudzums, $piezime, $id]);
-            $zina = 'Preces atrašanās vieta atjaunota.';
+            $teksts = 'Preces atrašanās vieta atjaunota.';
         }
 
         if ($action === 'delete_mapping') {
             $id = (int) ($_POST['id'] ?? 0);
             $stmt = $pdo->prepare('DELETE FROM preces_plauktos WHERE id = ?');
             $stmt->execute([$id]);
-            $zina = 'Prece no plaukta noņemta.';
+            $teksts = 'Prece no plaukta noņemta.';
+        }
+
+        if ($teksts === '') {
+            throw new RuntimeException('Nezināma darbība. Mēģini vēlreiz.');
         }
     } catch (Throwable $e) {
-        $kluda = $e->getMessage();
+        $tips = 'kluda';
+        $teksts = $e->getMessage();
     }
+
+    kartotajsNovirzitArZinu('kartesana', $tips, $teksts);
 }
 
 $plaukti = [];
