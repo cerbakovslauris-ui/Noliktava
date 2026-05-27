@@ -342,42 +342,6 @@ if (hasPdo()) {
     <link rel="stylesheet" href="../Css/admin.css">
     <link rel="stylesheet" href="../Css/kartotajs.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
-    <style>
-        .kartotajs-map-cell {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .kartotajs-map-form {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin: 0;
-        }
-
-        .kartotajs-delete-form {
-            display: none;
-        }
-
-        .kartotajs-darbibas {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .admin-poga-dzest {
-            background: #d9365f;
-        }
-
-        .admin-poga-dzest:hover {
-            background: #b91f46;
-        }
-    </style>
 </head>
 <body>
     <header class="headers">
@@ -465,13 +429,19 @@ if (hasPdo()) {
                                     <?php foreach ($kartesanas as $rinda): ?>
                                         <tr>
                                             <td><?php echo e($rinda['preces_nosaukums']); ?></td>
-                                            <td colspan="4" class="kartotajs-map-cell">
-                                                <form id="kartotajs-update-<?php echo e($rinda['id']); ?>" class="kartotajs-map-form" method="post">
+                                            <td>
+                                                <input class="kartotajs-table-input plaukta-ievade" type="text" name="plaukts" value="<?php echo e($rinda['plaukts_nosaukums']); ?>" data-kartesanas-id="<?php echo e($rinda['id']); ?>" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" form="kartotajs-update-<?php echo e($rinda['id']); ?>" required>
+                                            </td>
+                                            <td>
+                                                <input class="kartotajs-table-input kartotajs-daudzums-input" type="number" name="daudzums" min="0" value="<?php echo e($rinda['daudzums']); ?>" form="kartotajs-update-<?php echo e($rinda['id']); ?>">
+                                            </td>
+                                            <td>
+                                                <input class="kartotajs-table-input" type="text" name="piezime" value="<?php echo e($rinda['piezime'] ?? ''); ?>" placeholder="Piezīme" form="kartotajs-update-<?php echo e($rinda['id']); ?>">
+                                            </td>
+                                            <td>
+                                                <form id="kartotajs-update-<?php echo e($rinda['id']); ?>" method="post">
                                                     <input type="hidden" name="action" value="update_mapping">
                                                     <input type="hidden" name="id" value="<?php echo e($rinda['id']); ?>">
-                                                    <input class="plaukta-ievade" type="text" name="plaukts" value="<?php echo e($rinda['plaukts_nosaukums']); ?>" data-kartesanas-id="<?php echo e($rinda['id']); ?>" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" required>
-                                                    <input type="number" name="daudzums" min="0" value="<?php echo e($rinda['daudzums']); ?>">
-                                                    <input type="text" name="piezime" value="<?php echo e($rinda['piezime'] ?? ''); ?>" placeholder="Piezīme">
                                                 </form>
                                                 <form id="kartotajs-delete-<?php echo e($rinda['id']); ?>" class="kartotajs-delete-form" method="post" onsubmit="return confirm('Dzēst šo piesaisti?');">
                                                     <input type="hidden" name="action" value="delete_mapping">

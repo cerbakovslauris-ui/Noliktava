@@ -135,6 +135,10 @@ body::before {
     vertical-align: middle;
 }
 
+.kartotajs-tabula td .kartotajs-table-input {
+    width: 100%;
+}
+
 .kartotajs-table-input {
     width: 100%;
     min-height: 44px;
@@ -156,6 +160,7 @@ body::before {
 
 .kartotajs-daudzums-input {
     min-width: 80px;
+    max-width: 120px;
 }
 
 .kartotajs-darbibas {
@@ -164,6 +169,10 @@ body::before {
     justify-content: flex-start;
     gap: 8px;
     flex-wrap: nowrap;
+}
+
+.kartotajs-darbibas .admin-poga {
+    min-width: 92px;
 }
 
 .kartotajs-row-form,
