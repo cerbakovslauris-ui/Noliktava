@@ -236,3 +236,69 @@ main {
     color: var(--success) !important;
 }
 
+/* Responsīvais dizains */
+@media (max-width: 760px) {
+    main {
+        align-items: flex-start;
+        padding: 84px 14px 28px;
+    }
+
+    .back {
+        top: 14px;
+        left: 14px;
+        min-height: 40px;
+        padding: 9px 14px;
+        font-size: 13px;
+    }
+
+    .reg {
+        width: 100%;
+    }
+
+    .reg_teksts {
+        padding: 26px;
+        border-radius: 22px;
+    }
+
+    .reg_teksts h1 {
+        font-size: 32px;
+    }
+
+    .paroles_drošība {
+        padding: 14px !important;
+        gap: 10px !important;
+    }
+}
+
+@media (max-width: 520px) {
+    main {
+        padding: 74px 10px 20px;
+    }
+
+    .back {
+        left: 10px;
+        right: 10px;
+        width: calc(100% - 20px);
+    }
+
+    .reg_teksts {
+        padding: 20px;
+        border-radius: 18px;
+    }
+
+    .reg_teksts h1 {
+        font-size: 28px;
+    }
+
+    .reg_teksts p,
+    .reg_teksts input,
+    .reg_teksts button,
+    .paroles_drošība .parole-noteikums {
+        font-size: 14px !important;
+    }
+
+    .reg_teksts input,
+    .reg_teksts button {
+        min-height: 44px;
+    }
+}

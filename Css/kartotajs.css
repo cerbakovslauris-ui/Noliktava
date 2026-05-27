@@ -245,3 +245,70 @@ body::before {
         width: 100%;
     }
 }
+
+/* Papildu responsīvais dizains */
+@media (max-width: 1180px) {
+    .kartotajs-darbibas {
+        margin-top: 0;
+        flex-wrap: wrap;
+    }
+
+    .kartotajs-table-input,
+    .kartotajs-daudzums-input {
+        min-width: 0;
+    }
+}
+
+@media (max-width: 900px) {
+    .kartotajs-form-3,
+    .kartotajs-form-4,
+    .kartotajs-row-form,
+    .kartotajs-map-form {
+        grid-template-columns: 1fr;
+    }
+
+    .kartotajs-darbibas,
+    .kartotajs-delete-form {
+        width: 100%;
+    }
+
+    .kartotajs-darbibas .admin-poga,
+    .kartotajs-delete-form .admin-poga {
+        width: 100%;
+    }
+
+    .kartotajs-tabula {
+        min-width: 760px;
+    }
+}
+
+@media (max-width: 760px) {
+    .kartotajs-statistika div {
+        padding: 15px;
+    }
+
+    .kartotajs-statistika strong {
+        font-size: 28px;
+    }
+
+    .kartotajs-form input,
+    .kartotajs-form select,
+    .kartotajs-row-form input,
+    .kartotajs-row-form select,
+    .kartotajs-map-form input,
+    .kartotajs-map-form select,
+    .kartotajs-table-input {
+        min-height: 42px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 520px) {
+    .kartotajs-statistika div {
+        border-radius: 14px;
+    }
+
+    .kartotajs-statistika strong {
+        font-size: 24px;
+    }
+}

@@ -450,3 +450,141 @@
     letter-spacing: -0.8px;
 }
 
+/* Responsīvais dizains */
+@media (max-width: 1180px) {
+    .admin-lapa {
+        grid-template-columns: 230px minmax(0, 1fr);
+        gap: 18px;
+        width: min(100%, calc(100% - 24px));
+    }
+
+    .admin-saturs {
+        padding: 22px;
+    }
+
+    .admin-create-user-form,
+    .admin-user-edit-form,
+    .admin-user-actions,
+    .admin-product-edit-form,
+    .admin-product-actions {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    #atskaites .admin-tabula tbody {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .admin-lapa {
+        grid-template-columns: 1fr;
+        padding-top: 18px;
+    }
+
+    .admin-nav-bar {
+        position: static;
+        padding: 18px;
+    }
+
+    .admin-nav-bar ul {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin-saturs {
+        min-height: auto;
+    }
+
+    .admin-tabula-wrap {
+        padding: 16px;
+    }
+
+    .admin-form-inline,
+    .admin-darbibas {
+        flex-wrap: wrap;
+    }
+
+    .admin-create-user-form,
+    .admin-user-edit-form,
+    .admin-user-actions,
+    .admin-product-edit-form,
+    .admin-product-actions,
+    .admin-add-product-table tr,
+    .admin-add-product-table tr:last-child {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-add-product-table tr:last-child td {
+        grid-column: 1;
+    }
+
+    .admin-poga {
+        width: 100%;
+    }
+}
+
+@media (max-width: 760px) {
+    .admin-lapa {
+        width: 100%;
+        padding: 14px;
+    }
+
+    .admin-nav-bar,
+    .admin-saturs,
+    .admin-tabula-wrap {
+        border-radius: 18px;
+    }
+
+    .admin-nav-bar ul {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-panel h2 {
+        font-size: 28px;
+    }
+
+    .admin-panel h3 {
+        font-size: 20px;
+    }
+
+    .admin-tabula,
+    .admin-lietotaji-tabula,
+    .admin-products-table {
+        min-width: 760px;
+    }
+
+    #atskaites .admin-tabula {
+        min-width: 0;
+    }
+
+    #atskaites .admin-tabula tbody {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 520px) {
+    .admin-lapa {
+        padding: 10px;
+    }
+
+    .admin-nav-bar,
+    .admin-saturs,
+    .admin-tabula-wrap {
+        padding: 14px;
+    }
+
+    .admin-tabula th,
+    .admin-tabula td {
+        padding: 12px;
+        font-size: 13px;
+    }
+
+    .admin-poga,
+    .admin-form-inline input,
+    .admin-form-inline select,
+    .admin-tabula input,
+    .admin-tabula select,
+    .admin-tabula textarea {
+        min-height: 40px;
+        font-size: 13px;
+    }
+}
