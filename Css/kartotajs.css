@@ -133,6 +133,7 @@ body::before {
     justify-content: flex-start;
     gap: 8px;
     flex-wrap: nowrap;
+    margin-top: -20px;
 }
 
 .kartotajs-row-form,

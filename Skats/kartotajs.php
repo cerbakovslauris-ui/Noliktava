@@ -146,6 +146,47 @@ function plauktsJauIzmantots(PDO $pdo, int $plauktsId, int $iznemotKartesanasId 
     return $stmt->fetchColumn() !== false;
 }
 
+function dzestTuksuPlauktu(PDO $pdo, int $plauktsId): void
+{
+    if ($plauktsId <= 0) {
+        return;
+    }
+
+    $stmt = $pdo->prepare('SELECT id FROM preces_plauktos WHERE plaukts_id = ? LIMIT 1');
+    $stmt->execute([$plauktsId]);
+
+    if ($stmt->fetchColumn() === false) {
+        $dzest = $pdo->prepare('DELETE FROM plaukti WHERE id = ?');
+        $dzest->execute([$plauktsId]);
+    }
+}
+
+
+function sakoptKartotajaDatus(PDO $pdo, ?string $produktuTabula = null): void
+{
+    if ($produktuTabula) {
+        try {
+            $pdo->exec('DELETE pp FROM preces_plauktos pp LEFT JOIN ' . $produktuTabula . ' p ON p.id = pp.product_id WHERE p.id IS NULL');
+        } catch (Throwable $e) {
+            try {
+                $pdo->exec('DELETE FROM preces_plauktos WHERE product_id NOT IN (SELECT id FROM ' . $produktuTabula . ')');
+            } catch (Throwable $e2) {
+                // Ja datu bāze neatbalsta šo sintaksi, vienkārši turpinām bez kļūdas.
+            }
+        }
+    }
+
+    try {
+        $pdo->exec('DELETE pl FROM plaukti pl LEFT JOIN preces_plauktos pp ON pp.plaukts_id = pl.id WHERE pp.id IS NULL');
+    } catch (Throwable $e) {
+        try {
+            $pdo->exec('DELETE FROM plaukti WHERE id NOT IN (SELECT DISTINCT plaukts_id FROM preces_plauktos WHERE plaukts_id IS NOT NULL)');
+        } catch (Throwable $e2) {
+            // Ja datu bāze neatbalsta šo sintaksi, vienkārši turpinām bez kļūdas.
+        }
+    }
+}
+
 function izveidotKartotajaTabulas(): void
 {
     if (!hasPdo()) {
@@ -213,6 +254,10 @@ $produktaNosaukumaKolonna = pirmaKolonna($produktuKolonnas, ['name', 'nosaukums'
 $produktaDaudzumaKolonna = pirmaKolonna($produktuKolonnas, ['quantity', 'daudzums', 'stock', 'skaits'], 'quantity');
 $produktaAprakstaKolonna = pirmaKolonna($produktuKolonnas, ['description', 'apraksts', 'piezime'], 'description');
 
+if (hasPdo()) {
+    sakoptKartotajaDatus($pdo, $produktuTabula);
+}
+
 $flashZina = $_SESSION['kartotajs_flash'] ?? null;
 unset($_SESSION['kartotajs_flash']);
 
@@ -259,11 +304,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $plauktaNosaukums = (string) ($_POST['plaukts'] ?? '');
             $daudzums = max(0, (int) ($_POST['daudzums'] ?? 0));
             $piezime = trim($_POST['piezime'] ?? '');
-            $plauktsId = atrastVaiIzveidotPlauktu($pdo, $plauktaNosaukums);
 
             if ($id <= 0) {
                 throw new RuntimeException('Pārbaudi kartēšanas datus.');
             }
+
+            $vecaisPlauktsStmt = $pdo->prepare('SELECT plaukts_id FROM preces_plauktos WHERE id = ? LIMIT 1');
+            $vecaisPlauktsStmt->execute([$id]);
+            $vecaisPlauktsId = (int) $vecaisPlauktsStmt->fetchColumn();
+
+            $plauktsId = atrastVaiIzveidotPlauktu($pdo, $plauktaNosaukums);
 
             if (plauktsJauIzmantots($pdo, $plauktsId, $id)) {
                 throw new RuntimeException('Šis plaukts jau ir izmantots citai precei. Izvēlies citu plauktu.');
@@ -271,13 +321,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $stmt = $pdo->prepare('UPDATE preces_plauktos SET plaukts_id = ?, daudzums = ?, piezime = ? WHERE id = ?');
             $stmt->execute([$plauktsId, $daudzums, $piezime, $id]);
+
+            if ($vecaisPlauktsId !== $plauktsId) {
+                dzestTuksuPlauktu($pdo, $vecaisPlauktsId);
+            }
+
             $teksts = 'Preces atrašanās vieta atjaunota.';
         }
 
         if ($action === 'delete_mapping') {
             $id = (int) ($_POST['id'] ?? 0);
+
+            $plauktsStmt = $pdo->prepare('SELECT plaukts_id FROM preces_plauktos WHERE id = ? LIMIT 1');
+            $plauktsStmt->execute([$id]);
+            $plauktsId = (int) $plauktsStmt->fetchColumn();
+
             $stmt = $pdo->prepare('DELETE FROM preces_plauktos WHERE id = ?');
             $stmt->execute([$id]);
+
+            dzestTuksuPlauktu($pdo, $plauktsId);
+
             $teksts = 'Prece no plaukta noņemta.';
         }
 
@@ -303,9 +366,6 @@ $statistika = [
 
 if (hasPdo()) {
     try {
-        $plaukti = $pdo->query('SELECT * FROM plaukti ORDER BY nosaukums ASC')->fetchAll(PDO::FETCH_ASSOC);
-        $statistika['plaukti'] = count($plaukti);
-
         if ($produktuTabula) {
             $precesSql = 'SELECT id, ' . $produktaNosaukumaKolonna . ' AS nosaukums';
             if (in_array($produktaDaudzumaKolonna, $produktuKolonnas, true)) {
@@ -326,6 +386,19 @@ if (hasPdo()) {
             $kartesanas = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
             $statistika['kartetas_preces'] = count($kartesanas);
             $statistika['kop_daudzums'] = array_sum(array_map(fn($r) => (int) $r['daudzums'], $kartesanas));
+
+            $plauktuSaraksts = [];
+            foreach ($kartesanas as $rinda) {
+                $plauktsId = (int) $rinda['plaukts_id'];
+                if (!isset($plauktuSaraksts[$plauktsId])) {
+                    $plauktuSaraksts[$plauktsId] = [
+                        'id' => $plauktsId,
+                        'nosaukums' => $rinda['plaukts_nosaukums'],
+                    ];
+                }
+            }
+            $plaukti = array_values($plauktuSaraksts);
+            $statistika['plaukti'] = count($plaukti);
         }
     } catch (Throwable $e) {
         $kluda = $kluda ?: 'Neizdevās ielādēt datus: ' . $e->getMessage();
