@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        // Normalizē plaukta nosaukumu
+  
         $plauktaNosaukums = strtoupper(trim($plauktaNosaukums));
         $plauktaNosaukums = preg_replace('/\s+/', '', $plauktaNosaukums);
 
@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $plauktaNosaukums = $sakritiba[1] . '-' . $sakritiba[2];
 
-        // Meklē vai izveido plauktu
+   
         $meklet = $pdo->prepare('SELECT id FROM plaukti WHERE nosaukums = ? LIMIT 1');
         $meklet->execute([$plauktaNosaukums]);
         $plauktsId = $meklet->fetchColumn();
@@ -81,7 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $plauktsId = $pdo->lastInsertId();
         }
 
-        // Pārbaudā vai produkts jau ir piesaistīts šim plauktam
         $parbaudePiesaisti = $pdo->prepare('SELECT id FROM preces_plauktos WHERE product_id = ? LIMIT 1');
         $parbaudePiesaisti->execute([$productId]);
 
@@ -96,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         adminParbauditPrecesDaudzumuPlaukta($pdo, $productId, $daudzums);
 
-        // Piesaista preci plauktam
+
         $insert = $pdo->prepare('INSERT INTO preces_plauktos (product_id, plaukts_id, daudzums, piezime) VALUES (?, ?, ?, ?)');
         $insert->execute([$productId, $plauktsId, $daudzums, $piezime]);
 
