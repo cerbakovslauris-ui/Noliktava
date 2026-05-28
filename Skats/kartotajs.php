@@ -475,7 +475,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $piezime = trim($_POST['piezime'] ?? '');
 
             if ($id <= 0) {
-                throw new RuntimeException('Pārbaudi kartēšanas datus.');
+                throw new RuntimeException('Pārbaudi kārtošanas datus.');
             }
 
             $vecieDatiStmt = $pdo->prepare('SELECT product_id, plaukts_id, daudzums, piezime FROM preces_plauktos WHERE id = ? LIMIT 1');
@@ -612,7 +612,7 @@ if (hasPdo()) {
             <h2>Kārtotāja panelis</h2>
             <nav>
                 <ul>
-                    <li><a class="active" href="#kartesana"><i class="fa fa-exchange" aria-hidden="true"></i>Kartēšana</a></li>
+                    <li><a class="active" href="#kartesana"><i class="fa fa-exchange" aria-hidden="true"></i>Kārtošana</a></li>
                     <li><a href="#atskaites"><i class="fa fa-line-chart" aria-hidden="true"></i>Atskaites</a></li>
                 </ul>
             </nav>
@@ -628,7 +628,7 @@ if (hasPdo()) {
             <?php endif; ?>
 
             <article id="kartesana" class="admin-panel active" data-panel>
-                <h2>Kartēšana</h2>
+                <h2>Kārtošana</h2>
                 <p>Šeit var norādīt, kurā plauktā atrodas konkrēta prece un cik daudz vienību ir šajā vietā.</p>
 
                 <?php if (!$produktuTabula): ?>

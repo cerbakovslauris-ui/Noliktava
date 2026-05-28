@@ -97,7 +97,7 @@ try {
     }
     $plaukti = array_values($plauktuSaraksts);
 } catch (Throwable $e) {
-    $kartosanasKluda = 'Neizdevās ielādēt kartošanas datus.';
+    $kartosanasKluda = 'Neizdevās ielādēt kārtošanas datus.';
 }
 ?>
 <!DOCTYPE html>
@@ -129,7 +129,7 @@ try {
                     <li><a class="active" href="#lietotaji"><i class="fa fa-user" aria-hidden="true"></i>Lietotāji</a></li>
                     <li><a href="#pievienot-preces"><i class="fa fa-plus" aria-hidden="true"></i>Pievienot preces</a></li>
                     <li><a href="#rediget-preces"><i class="fa fa-edit" aria-hidden="true"></i>Rediģēt preces</a></li>
-                    <li><a href="#kartosana"><i class="fa fa-th" aria-hidden="true"></i>Kartošana</a></li>
+                    <li><a href="#kartosana"><i class="fa fa-exchange" aria-hidden="true"></i>Kārtošana</a></li>
                     <li><a href="#atskaites"><i class="fa fa-line-chart" aria-hidden="true"></i>Atskaites</a></li>
                 </ul>
             </nav>
@@ -298,7 +298,7 @@ try {
             </article>
 
             <article id="kartosana" class="admin-panel" data-panel>
-                <h2>Kartošana - Preces plauktos</h2>
+                <h2>Kārtošana - Preces plauktos</h2>
                 <p>Piešķir preces plauktiem un pārvaldi to izvietojumu.</p>
 
                 <?php if ($kartosanasKluda !== null): ?>
