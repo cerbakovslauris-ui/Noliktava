@@ -185,31 +185,40 @@ main {
 }
 
 
+/* Echo ziņas kā darbinieku lapā: zaļa ok, sarkana kļūdai, pazūd pēc 3 sekundēm */
 .echo-zinojums {
     display: none;
     width: 100%;
-    margin: 0 0 8px;
-    padding: 12px 14px;
+    margin: 0 0 12px;
+    padding: 14px 16px;
     border-radius: 14px;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 900;
     line-height: 1.35;
 }
 
 .echo-zinojums.show {
     display: block;
+    animation: echoFade 3s ease forwards;
 }
 
 .echo-zinojums.error {
     background: #fee2e2;
     border: 1px solid #fecaca;
-    color: var(--danger);
+    color: #991b1b;
 }
 
 .echo-zinojums.success {
-    background: var(--success-soft);
-    border: 1px solid #bbf7d0;
-    color: var(--success);
+    background: #dcfce7;
+    border: 1px solid #86efac;
+    color: #166534;
+}
+
+@keyframes echoFade {
+    0% { opacity: 0; transform: translateY(-6px); }
+    10% { opacity: 1; transform: translateY(0); }
+    85% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-6px); }
 }
 
 /* Paroles noteikumi: zils fons, bez borderiem, viens zem otra */

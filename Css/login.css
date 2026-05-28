@@ -185,6 +185,42 @@ main {
     text-decoration: underline;
 }
 
+.login-zina {
+    width: 100%;
+    margin: 16px 0 18px 0;
+    padding: 16px 18px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.35;
+    text-align: center;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.35s ease, transform 0.35s ease, margin 0.35s ease, padding 0.35s ease;
+}
+
+.login-ok-zina {
+    border: 1px solid #86efac;
+    background: #dcfce7;
+    color: #166534;
+}
+
+.login-kluda {
+    border: 1px solid #fecaca;
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.login-zina.paslept {
+    opacity: 0;
+    transform: translateY(-8px);
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+}
+
 /* Responsīvais dizains */
 @media (max-width: 900px) {
     main {
@@ -254,6 +290,11 @@ main {
     .log_teksts p,
     .log_teksts input,
     .log_teksts button {
+        font-size: 14px;
+    }
+
+    .login-zina {
+        padding: 13px 14px;
         font-size: 14px;
     }
 

@@ -1,3 +1,43 @@
+<?php
+$echoText = '';
+$echoType = 'error';
+
+if (isset($_GET['msg'])) {
+    $echoText = trim((string)$_GET['msg']);
+    $echoType = (isset($_GET['type']) && $_GET['type'] === 'ok') ? 'success' : 'error';
+}
+
+if (isset($_GET['error'])) {
+    $echoType = 'error';
+    switch ($_GET['error']) {
+        case 'empty':
+            $echoText = 'Lūdzu aizpildi visus laukus!';
+            break;
+        case 'username':
+            $echoText = 'Lietotājvārds nav derīgs!';
+            break;
+        case 'password':
+            $echoText = 'Parole neatbilst noteikumiem!';
+            break;
+        case 'passwordmatch':
+        case 'match':
+            $echoText = 'Paroles nesakrīt!';
+            break;
+        case 'taken':
+        case 'exists':
+            $echoText = 'Šāds lietotājvārds jau eksistē!';
+            break;
+        default:
+            $echoText = 'Reģistrācija neizdevās!';
+            break;
+    }
+}
+
+if (isset($_GET['success']) || (isset($_GET['signup']) && $_GET['signup'] === 'success')) {
+    $echoType = 'success';
+    $echoText = 'Reģistrācija veiksmīga!';
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +55,9 @@
             <div class="reg_teksts">
                 <h1>Reģistrēties</h1>
                 <form id="registerForm" action="../../Includes/log_reg_inc/reg_inc.php" method="POST" novalidate>
-                    <div id="echo-zinojums" class="echo-zinojums" aria-live="polite"></div>
+                    <div id="echo-zinojums" class="echo-zinojums <?php echo $echoText !== '' ? htmlspecialchars($echoType, ENT_QUOTES, 'UTF-8') . ' show' : ''; ?>" aria-live="polite">
+                        <?php echo htmlspecialchars($echoText, ENT_QUOTES, 'UTF-8'); ?>
+                    </div>
                     <h3>Lietotājvārds vai vārds</h3>
                     <input type="text" name="lietotajvards" placeholder='Lietotājvārds vai vārds'>
 
@@ -44,6 +86,12 @@
             const paroleApstiprinatIevade = document.querySelector('input[name="parole_apstiprinat"]');
             const bezAtstarpemIevades = Array.from(document.querySelectorAll('input[name="lietotajvards"], input[name="parole"], input[name="parole_apstiprinat"]'));
             let zinojumaTaimeris;
+
+            if (zinojums && zinojums.classList.contains('show')) {
+                zinojumaTaimeris = setTimeout(() => {
+                    zinojums.classList.remove('show');
+                }, 3000);
+            }
 
             function paraditZinojumu(teksts, tips = 'error') {
                 if (!zinojums) {

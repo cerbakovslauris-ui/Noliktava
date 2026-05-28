@@ -1,3 +1,28 @@
+<?php
+$loginMessage = '';
+$loginMessageType = 'kluda';
+
+if (isset($_GET['session_expired']) && $_GET['session_expired'] == '1') {
+    $loginMessage = 'Sesija ir beigusies. Ienāc vēlreiz.';
+}
+
+if (isset($_GET['msg'])) {
+    $loginMessage = trim($_GET['msg']);
+    $loginMessageType = ($_GET['type'] ?? 'kluda') === 'ok' ? 'ok' : 'kluda';
+}
+
+if (isset($_GET['error'])) {
+    $loginMessageType = 'kluda';
+
+    if ($_GET['error'] === 'empty') {
+        $loginMessage = 'Aizpildi lietotājvārdu un paroli.';
+    } elseif ($_GET['error'] === 'wrong') {
+        $loginMessage = 'Nepareizs lietotājvārds vai parole.';
+    } else {
+        $loginMessage = 'Pieteikšanās neizdevās.';
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,8 +39,10 @@
         <div class="login">
             <div class="log_teksts">
                 <h1>Ienākt</h1>
-                <?php if (isset($_GET['session_expired']) && $_GET['session_expired'] == '1'): ?>
-                    <p class="admin-kluda">Sesija ir beigusies. Ienāc vēlreiz.</p>
+                <?php if ($loginMessage !== ''): ?>
+                    <div class="login-zina <?= $loginMessageType === 'ok' ? 'login-ok-zina' : 'login-kluda'; ?>" id="login-zina">
+                        <?= htmlspecialchars($loginMessage, ENT_QUOTES, 'UTF-8'); ?>
+                    </div>
                 <?php endif; ?>
                 <form action="../../Includes/log_reg_inc/log_inc.php" method="POST">
                     <h3>Lietotajvārds</h3>
@@ -29,6 +56,21 @@
         </div>
     </main>
     <script>
+        (() => {
+            const zina = document.getElementById('login-zina');
+
+            if (zina) {
+                setTimeout(() => {
+                    zina.classList.add('paslept');
+                    setTimeout(() => zina.remove(), 350);
+                }, 3000);
+
+                if (window.history.replaceState) {
+                    window.history.replaceState(null, '', window.location.pathname);
+                }
+            }
+        })();
+
         (() => {
             const ievades = Array.from(document.querySelectorAll('input[name="lietotajvards"], input[name="parole"]'));
 
