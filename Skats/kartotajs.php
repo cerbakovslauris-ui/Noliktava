@@ -339,7 +339,6 @@ function sakoptKartotajaDatus(PDO $pdo, ?string $produktuTabula = null): void
         try {
             $pdo->exec('DELETE FROM plaukti WHERE id NOT IN (SELECT DISTINCT plaukts_id FROM preces_plauktos WHERE plaukts_id IS NOT NULL)');
         } catch (Throwable $e2) {
-            // Ja datu bāze neatbalsta šo sintaksi, vienkārši turpinām bez kļūdas.
         }
     }
 }
