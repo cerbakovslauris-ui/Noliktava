@@ -11,6 +11,8 @@ $visasLomas = [];
 $lietotajuIeladesKluda = null;
 $products = [];
 $produktuIeladesKluda = null;
+$orders = [];
+$pasutijumuIeladesKluda = null;
 $atskaitesKluda = null;
 $kartesanas = [];
 $plaukti = [];
@@ -75,6 +77,21 @@ try {
 }
 
 try {
+    $pasutijumuVaicajums = $pdo->query(
+        'SELECT o.id, o.quantity, o.status, o.created_at,
+                p.name AS product_name,
+                u.username AS user_name
+         FROM orders o
+         INNER JOIN products p ON p.id = o.product_id
+         INNER JOIN users u ON u.id = o.user_id
+         ORDER BY o.id DESC'
+    );
+    $orders = $pasutijumuVaicajums->fetchAll();
+} catch (PDOException $e) {
+    $pasutijumuIeladesKluda = 'Neizdevās ielādēt pasūtījumu sarakstu.';
+}
+
+try {
     $kartesanasVaicajums = $pdo->query(
         'SELECT pp.id, pp.product_id, pp.plaukts_id, pp.daudzums, pp.piezime,
                 p.name AS preces_nosaukums, pl.nosaukums AS plaukts_nosaukums
@@ -130,6 +147,7 @@ try {
                     <li><a href="#pievienot-preces"><i class="fa fa-plus" aria-hidden="true"></i>Pievienot preces</a></li>
                     <li><a href="#rediget-preces"><i class="fa fa-edit" aria-hidden="true"></i>Rediģēt preces</a></li>
                     <li><a href="#kartosana"><i class="fa fa-exchange" aria-hidden="true"></i>Kārtošana</a></li>
+                    <li><a href="#pasutit"><i class="fa fa-clipboard" aria-hidden="true"></i>Pasūtīt</a></li>
                     <li><a href="#atskaites"><i class="fa fa-line-chart" aria-hidden="true"></i>Atskaites</a></li>
                 </ul>
             </nav>
@@ -369,6 +387,90 @@ try {
                 <?php endif; ?>
             </article>
 
+            <article id="pasutit" class="admin-panel" data-panel>
+                <h2>Pasūtīt preces</h2>
+                <p>Izveido jaunu pasūtījumu no pieejamajām precēm.</p>
+
+                <div class="admin-tabula-wrap">
+                    <form method="post" action="../Includes/admin_inc/add_pasutijums.php" class="admin-form">
+                        <div>
+                            <label>Prece</label>
+                            <select name="product_id" required>
+                                <option value="">Izvēlies preci</option>
+                                <?php foreach ($products as $product): ?>
+                                    <?php $pieejamaisDaudzums = max(0, (int) ($product['quantity'] ?? 0)); ?>
+                                    <option value="<?php echo (int) $product['id']; ?>" data-max="<?php echo $pieejamaisDaudzums; ?>" <?php echo $pieejamaisDaudzums <= 0 ? 'disabled' : ''; ?>>
+                                        <?php echo htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8'); ?> - atlikums: <?php echo $pieejamaisDaudzums; ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Daudzums</label>
+                            <input type="number" name="quantity" min="1" step="1" required>
+                        </div>
+                        <button type="submit" class="admin-poga admin-poga-mainit">Izveidot pasūtījumu</button>
+                    </form>
+                </div>
+
+                <div class="admin-tabula-wrap">
+                    <h3>Visi pasūtījumi</h3>
+                    <?php if ($pasutijumuIeladesKluda !== null): ?>
+                        <p class="admin-kluda"><?php echo htmlspecialchars($pasutijumuIeladesKluda, ENT_QUOTES, 'UTF-8'); ?></p>
+                    <?php elseif (empty($orders)): ?>
+                        <p>Pasūtījumu vēl nav.</p>
+                    <?php else: ?>
+                        <table class="admin-tabula">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Prece</th>
+                                    <th>Daudzums</th>
+                                    <th>Lietotājs</th>
+                                    <th>Statuss</th>
+                                    <th>Izveidots</th>
+                                    <th>Darbības</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($orders as $order): ?>
+                                    <tr>
+                                        <td><?php echo (int) $order['id']; ?></td>
+                                        <td><?php echo htmlspecialchars((string) $order['product_name'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo (int) $order['quantity']; ?></td>
+                                        <td><?php echo htmlspecialchars((string) $order['user_name'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars((string) $order['status'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars((string) $order['created_at'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td>
+                                            <div class="admin-darbibas admin-user-actions">
+                                                <form method="post" action="../Includes/admin_inc/mainit_pasutijumu.php" class="admin-form-inline admin-role-form">
+                                                    <input type="hidden" name="action" value="update_order_status">
+                                                    <input type="hidden" name="order_id" value="<?php echo (int) $order['id']; ?>">
+                                                    <select name="status" aria-label="Izvēlēties pasūtījuma statusu">
+                                                        <?php foreach (['jauns', 'pieņemts', 'izpildīts', 'atcelts'] as $status): ?>
+                                                            <option value="<?php echo htmlspecialchars($status, ENT_QUOTES, 'UTF-8'); ?>" <?php echo (string) $order['status'] === $status ? 'selected' : ''; ?>>
+                                                                <?php echo htmlspecialchars($status, ENT_QUOTES, 'UTF-8'); ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                    <button type="submit" class="admin-poga admin-poga-mainit">Mainīt</button>
+                                                </form>
+
+                                                <form method="post" action="../Includes/admin_inc/mainit_pasutijumu.php" class="admin-form-inline" onsubmit="return confirm('Vai tiešām dzēst šo pasūtījumu? Atlikums tiks atjaunots, ja pasūtījums nav atcelts.');">
+                                                    <input type="hidden" name="action" value="delete_order">
+                                                    <input type="hidden" name="order_id" value="<?php echo (int) $order['id']; ?>">
+                                                    <button type="submit" class="admin-poga admin-poga-dzest">Dzēst</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+                </div>
+            </article>
+
             <article id="atskaites" class="admin-panel" data-panel>
                 <h2>Atskaites</h2>
                 <p>Pārskats par lietotājiem, precēm un pasūtījumiem.</p>
@@ -500,6 +602,9 @@ try {
             const adminKartosanaForma = document.querySelector('form[action="../Includes/admin_inc/admin_piesaistiit_plauktu.php"]');
             const adminProductSelect = adminKartosanaForma ? adminKartosanaForma.querySelector('select[name="product_id"]') : null;
             const adminDaudzumsInput = adminKartosanaForma ? adminKartosanaForma.querySelector('input[name="daudzums"]') : null;
+            const adminPasutijumaForma = document.querySelector('form[action="../Includes/admin_inc/add_pasutijums.php"]');
+            const adminPasutijumaProductSelect = adminPasutijumaForma ? adminPasutijumaForma.querySelector('select[name="product_id"]') : null;
+            const adminPasutijumaDaudzumsInput = adminPasutijumaForma ? adminPasutijumaForma.querySelector('input[name="quantity"]') : null;
 
             function atjaunotAdminMaxDaudzumu() {
                 if (!adminProductSelect || !adminDaudzumsInput) {
@@ -520,6 +625,28 @@ try {
             if (adminProductSelect && adminDaudzumsInput) {
                 adminProductSelect.addEventListener('change', atjaunotAdminMaxDaudzumu);
                 atjaunotAdminMaxDaudzumu();
+            }
+
+            function atjaunotAdminPasutijumaMaxDaudzumu() {
+                if (!adminPasutijumaProductSelect || !adminPasutijumaDaudzumsInput) {
+                    return;
+                }
+
+                const selectedOption = adminPasutijumaProductSelect.options[adminPasutijumaProductSelect.selectedIndex];
+                const maxDaudzums = selectedOption ? parseInt(selectedOption.getAttribute('data-max') || '0', 10) : 0;
+                const drosaisMax = Number.isNaN(maxDaudzums) ? 0 : Math.max(0, maxDaudzums);
+
+                adminPasutijumaDaudzumsInput.max = String(drosaisMax > 0 ? drosaisMax : 1);
+
+                const ievaditaisDaudzums = parseInt(adminPasutijumaDaudzumsInput.value || '0', 10);
+                if (!Number.isNaN(ievaditaisDaudzums) && drosaisMax > 0 && ievaditaisDaudzums > drosaisMax) {
+                    adminPasutijumaDaudzumsInput.value = String(drosaisMax);
+                }
+            }
+
+            if (adminPasutijumaProductSelect && adminPasutijumaDaudzumsInput) {
+                adminPasutijumaProductSelect.addEventListener('change', atjaunotAdminPasutijumaMaxDaudzumu);
+                atjaunotAdminPasutijumaMaxDaudzumu();
             }
 
             window.addEventListener('hashchange', showPanelFromHash);
