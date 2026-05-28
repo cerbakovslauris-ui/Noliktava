@@ -184,6 +184,34 @@ main {
     text-decoration: underline;
 }
 
+
+.echo-zinojums {
+    display: none;
+    width: 100%;
+    margin: 0 0 8px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1.35;
+}
+
+.echo-zinojums.show {
+    display: block;
+}
+
+.echo-zinojums.error {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: var(--danger);
+}
+
+.echo-zinojums.success {
+    background: var(--success-soft);
+    border: 1px solid #bbf7d0;
+    color: var(--success);
+}
+
 /* Paroles noteikumi: zils fons, bez borderiem, viens zem otra */
 .paroles_drošība {
     display: flex !important;

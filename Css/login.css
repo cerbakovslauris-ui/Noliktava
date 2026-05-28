@@ -9,6 +9,8 @@
     --primary: #f6539f;
     --primary-dark: #d12c79;
     --primary-soft: #fae7f3;
+    --danger: #dc2626;
+    --danger-soft: #fee2e2;
     --radius: 18px;
     --shadow: 0 18px 45px rgba(209, 44, 121, 0.10);
 }
@@ -183,6 +185,49 @@ main {
 
 .log_teksts a:hover {
     text-decoration: underline;
+}
+
+
+
+/* Echo ziņojums */
+.admin-kluda {
+    width: 100%;
+    max-height: 120px;
+    overflow: hidden;
+    margin: 0 0 14px 0;
+    padding: 13px 15px;
+    border: 1px solid #fecaca;
+    border-radius: 14px;
+    background: var(--danger-soft);
+    color: #991b1b;
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.35;
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+        opacity 0.45s ease,
+        transform 0.45s ease,
+        max-height 0.45s ease,
+        margin 0.45s ease,
+        padding 0.45s ease,
+        border-width 0.45s ease;
+}
+
+.admin-kluda.pazud,
+.admin-kluda.paslepta {
+    max-height: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-width: 0;
+    opacity: 0;
+    transform: translateY(-8px);
+}
+
+.admin-kluda.paslepta {
+    display: none;
 }
 
 /* Responsīvais dizains */
