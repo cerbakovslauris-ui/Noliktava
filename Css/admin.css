@@ -470,6 +470,14 @@
         grid-template-columns: 1fr 1fr;
     }
 
+    .admin-product-edit-form {
+        grid-template-columns: minmax(160px, 1fr) minmax(190px, 1fr) 100px 120px;
+    }
+
+    .admin-product-edit-form .admin-poga {
+        grid-column: 1 / -1;
+    }
+
     #atskaites .admin-tabula tbody {
         grid-template-columns: repeat(2, minmax(180px, 1fr));
     }
@@ -478,11 +486,13 @@
 @media (max-width: 900px) {
     .admin-lapa {
         grid-template-columns: 1fr;
+        width: calc(100% - 24px);
         padding-top: 18px;
     }
 
     .admin-nav-bar {
         position: static;
+        width: 100%;
         padding: 18px;
     }
 
@@ -490,8 +500,15 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .admin-nav-bar a {
+        justify-content: center;
+        text-align: center;
+    }
+
     .admin-saturs {
+        width: 100%;
         min-height: auto;
+        padding: 20px;
     }
 
     .admin-tabula-wrap {
@@ -546,10 +563,96 @@
         font-size: 20px;
     }
 
-    .admin-tabula,
+    .admin-tabula-wrap {
+        overflow-x: visible;
+    }
+
     .admin-lietotaji-tabula,
     .admin-products-table {
-        min-width: 760px;
+        min-width: 0;
+        border: 0;
+        background: transparent;
+    }
+
+    .admin-lietotaji-tabula thead,
+    .admin-products-table thead {
+        display: none;
+    }
+
+    .admin-lietotaji-tabula tbody,
+    .admin-products-table tbody {
+        display: grid;
+        gap: 14px;
+    }
+
+    .admin-lietotaji-tabula tr,
+    .admin-products-table tr {
+        display: grid;
+        gap: 12px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 8px 20px rgba(209, 44, 121, 0.06);
+    }
+
+    .admin-lietotaji-tabula td,
+    .admin-products-table td {
+        display: grid;
+        gap: 7px;
+        padding: 0;
+        border: 0;
+        font-size: 14px;
+    }
+
+    .admin-lietotaji-tabula td::before,
+    .admin-products-table td::before {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+    }
+
+    .admin-lietotaji-tabula td:nth-child(1)::before {
+        content: "Lietotājvārds";
+    }
+
+    .admin-lietotaji-tabula td:nth-child(2)::before {
+        content: "Loma";
+    }
+
+    .admin-lietotaji-tabula td:nth-child(3)::before {
+        content: "Konta rediģēšana";
+    }
+
+    .admin-lietotaji-tabula td:nth-child(4)::before {
+        content: "Darbības";
+    }
+
+    .admin-products-table td:nth-child(1)::before {
+        content: "ID";
+    }
+
+    .admin-products-table td:nth-child(2)::before {
+        content: "Rediģēšana";
+    }
+
+    .admin-products-table td:nth-child(3)::before {
+        content: "Izveidots";
+    }
+
+    .admin-user-edit-form,
+    .admin-user-actions,
+    .admin-product-edit-form,
+    .admin-product-actions {
+        width: 100%;
+        grid-template-columns: 1fr;
+    }
+
+    .admin-darbibas,
+    .admin-form-inline {
+        width: 100%;
     }
 
     #atskaites .admin-tabula {
@@ -570,6 +673,10 @@
     .admin-saturs,
     .admin-tabula-wrap {
         padding: 14px;
+    }
+
+    .admin-panel h2 {
+        font-size: 24px;
     }
 
     .admin-tabula th,

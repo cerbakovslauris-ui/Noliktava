@@ -511,3 +511,276 @@ textarea::placeholder {
     background: #fee2e2;
     color: #991b1b;
 }
+
+/* Responsīvais dizains darbinieka lapai */
+@media (max-width: 1180px) {
+    .admin-lapa {
+        grid-template-columns: 240px minmax(0, 1fr);
+        gap: 18px;
+        padding: 22px;
+    }
+
+    .admin-saturs {
+        padding: 22px;
+    }
+
+    .edit-form {
+        grid-template-columns: minmax(160px, 1fr) minmax(180px, 1fr) 95px minmax(120px, 1fr) auto;
+    }
+
+    .atskaite-kopsavilkums {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .headers {
+        min-height: auto;
+        padding: 18px 14px 76px;
+    }
+
+    .name h1 {
+        font-size: 34px;
+    }
+
+    .log_reg {
+        top: auto;
+        right: 50%;
+        bottom: 14px;
+        width: calc(100% - 28px);
+        justify-content: center;
+        flex-wrap: wrap;
+        transform: translateX(50%);
+    }
+
+    .admin-lapa {
+        width: 100%;
+        grid-template-columns: 1fr;
+        padding: 18px 14px;
+        gap: 16px;
+    }
+
+    .admin-nav-bar {
+        position: static;
+        padding: 16px;
+    }
+
+    .admin-nav-bar ul {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .admin-nav-bar a {
+        justify-content: center;
+        text-align: center;
+        padding: 11px 10px;
+    }
+
+    .admin-nav-bar a.active::before {
+        display: none;
+    }
+
+    .admin-nav-bar a:hover,
+    .admin-nav-bar a.active {
+        transform: none;
+    }
+
+    .admin-saturs {
+        min-height: auto;
+        padding: 18px;
+    }
+
+    .forma-kaste,
+    .tabula-kaste {
+        padding: 18px;
+        border-radius: 18px;
+    }
+
+    .forma-rinda {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .tabula-kaste {
+        overflow-x: auto;
+    }
+
+    .edit-rinda,
+    .tabula td .edit-rinda,
+    .tabula td .edit-rinda form {
+        align-items: stretch;
+        flex-wrap: wrap;
+    }
+
+    .edit-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    .small-input {
+        max-width: none;
+    }
+
+    .tabula td .edit-rinda .status-select,
+    .tabula td .edit-rinda .poga,
+    .poga {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 760px) {
+    .admin-lapa {
+        padding: 12px;
+    }
+
+    .admin-nav-bar ul {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-panel h2 {
+        font-size: 28px;
+    }
+
+    .forma-kaste h3,
+    .tabula-kaste h3 {
+        font-size: 19px;
+    }
+
+    .tabula {
+        min-width: 0;
+        border: 0;
+        background: transparent;
+    }
+
+    .tabula thead {
+        display: none;
+    }
+
+    .tabula tbody,
+    .tabula tr,
+    .tabula td {
+        display: block;
+        width: 100%;
+    }
+
+    .tabula tr {
+        margin-bottom: 14px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 8px 18px rgba(209, 44, 121, 0.06);
+    }
+
+    .tabula tr:last-child {
+        margin-bottom: 0;
+    }
+
+    .tabula td {
+        display: grid;
+        grid-template-columns: 120px minmax(0, 1fr);
+        gap: 10px;
+        align-items: center;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+    }
+
+    .tabula td:last-child {
+        border-bottom: 0;
+    }
+
+    .tabula td::before {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    #pasutijumi .tabula td:nth-child(1)::before { content: "ID"; }
+    #pasutijumi .tabula td:nth-child(2)::before { content: "Prece"; }
+    #pasutijumi .tabula td:nth-child(3)::before { content: "Daudzums"; }
+    #pasutijumi .tabula td:nth-child(4)::before { content: "Darbinieks"; }
+    #pasutijumi .tabula td:nth-child(5)::before { content: "Statuss"; }
+    #pasutijumi .tabula td:nth-child(6)::before { content: "Izveidots"; }
+    #pasutijumi .tabula td:nth-child(7)::before { content: "Darbība"; }
+
+    #noliktava .tabula td:nth-child(1)::before { content: "ID"; }
+    #noliktava .tabula td:nth-child(2)::before { content: "Rediģēšana"; }
+    #noliktava .tabula td:nth-child(3)::before { content: "Izveidots"; }
+
+    #atskaites .tabula td:nth-child(1)::before { content: "Prece"; }
+    #atskaites .tabula td:nth-child(2)::before { content: "Plaukts"; }
+    #atskaites .tabula td:nth-child(3)::before { content: "Atlikums"; }
+    #atskaites .tabula td:nth-child(4)::before { content: "Pasūtīts"; }
+    #atskaites .tabula td:nth-child(5)::before { content: "Izpildīts"; }
+
+    .tabula td .edit-rinda,
+    .tabula td .edit-rinda form,
+    .edit-rinda {
+        width: 100%;
+    }
+
+    .edit-form {
+        grid-template-columns: 1fr;
+    }
+
+    .atskaite-kopsavilkums {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 520px) {
+    .headers {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .name h1 {
+        font-size: 28px;
+    }
+
+    .log_reg a,
+    .user {
+        min-height: 38px;
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .admin-lapa {
+        padding: 8px;
+    }
+
+    .admin-nav-bar,
+    .admin-saturs,
+    .forma-kaste,
+    .tabula-kaste {
+        padding: 14px;
+        border-radius: 16px;
+    }
+
+    .tabula tr {
+        padding: 12px;
+    }
+
+    .tabula td {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    input,
+    textarea,
+    select,
+    .status-select,
+    .poga {
+        min-height: 40px;
+        font-size: 13px;
+    }
+
+    .admin-ok-zina,
+    .admin-kluda {
+        padding: 13px 14px;
+        font-size: 14px;
+    }
+}

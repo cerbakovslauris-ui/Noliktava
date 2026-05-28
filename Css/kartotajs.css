@@ -360,3 +360,237 @@ body::before {
         font-size: 26px;
     }
 }
+
+/* Responsīvais dizains kartotāja lapai */
+@media (max-width: 1180px) {
+    .kartotajs-form-4,
+    .kartotajs-row-form,
+    .kartotajs-map-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .kartotajs-form-4 .admin-poga,
+    .kartotajs-row-form .admin-poga,
+    .kartotajs-map-form .admin-poga {
+        width: 100%;
+    }
+
+    .kartotajs-statistika {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .kartotajs-lapa {
+        width: calc(100% - 24px) !important;
+        padding: 18px 0 !important;
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    .kartotajs-lapa .admin-nav-bar {
+        position: static !important;
+        width: 100% !important;
+        padding: 16px !important;
+    }
+
+    .kartotajs-lapa .admin-nav-bar ul {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+    }
+
+    .kartotajs-lapa .admin-nav-bar a {
+        justify-content: center !important;
+        text-align: center !important;
+    }
+
+    .kartotajs-lapa .admin-nav-bar a.active::before {
+        display: none !important;
+    }
+
+    .kartotajs-lapa .admin-nav-bar a:hover,
+    .kartotajs-lapa .admin-nav-bar a.active {
+        transform: none !important;
+    }
+
+    .kartotajs-lapa .admin-saturs {
+        width: 100% !important;
+        min-height: auto !important;
+        padding: 18px !important;
+        border-radius: 20px !important;
+    }
+
+    .admin-tabula-wrap {
+        padding: 16px !important;
+        overflow-x: visible !important;
+    }
+
+    .kartotajs-form-3,
+    .kartotajs-form-4,
+    .kartotajs-row-form,
+    .kartotajs-map-form {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    .kartotajs-form .admin-poga,
+    .kartotajs-row-form .admin-poga,
+    .kartotajs-map-form .admin-poga {
+        width: 100% !important;
+    }
+
+    .kartotajs-statistika {
+        grid-template-columns: 1fr !important;
+    }
+
+    .kartotajs-statistika strong {
+        font-size: 28px !important;
+    }
+}
+
+@media (max-width: 760px) {
+    .kartotajs-lapa {
+        width: 100% !important;
+        padding: 12px !important;
+    }
+
+    .kartotajs-lapa .admin-nav-bar ul {
+        grid-template-columns: 1fr !important;
+    }
+
+    .kartotajs-lapa .admin-panel h2 {
+        font-size: 28px !important;
+    }
+
+    .kartotajs-lapa .admin-tabula-wrap h3,
+    .plauktu-noslodze-virsraksts h3 {
+        font-size: 22px !important;
+    }
+
+    .kartotajs-tabula {
+        min-width: 0 !important;
+        border: 0 !important;
+        background: transparent !important;
+    }
+
+    .kartotajs-tabula thead {
+        display: none !important;
+    }
+
+    .kartotajs-tabula,
+    .kartotajs-tabula tbody,
+    .kartotajs-tabula tr,
+    .kartotajs-tabula td {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    .kartotajs-tabula tr {
+        margin-bottom: 14px !important;
+        padding: 14px !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 18px !important;
+        background: #ffffff !important;
+        box-shadow: var(--shadow-small) !important;
+    }
+
+    .kartotajs-tabula td {
+        padding: 0 0 12px 0 !important;
+        border: 0 !important;
+    }
+
+    .kartotajs-tabula td:last-child {
+        padding-bottom: 0 !important;
+    }
+
+    .kartotajs-tabula td::before {
+        display: block !important;
+        margin-bottom: 6px !important;
+        color: var(--muted) !important;
+        font-size: 12px !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.4px !important;
+    }
+
+    .kartotajs-tabula td:nth-child(1)::before {
+        content: "Prece";
+    }
+
+    .kartotajs-tabula td:nth-child(2)::before {
+        content: "Plaukts";
+    }
+
+    .kartotajs-tabula td:nth-child(3)::before {
+        content: "Daudzums";
+    }
+
+    .kartotajs-tabula td:nth-child(4)::before {
+        content: "Piezīme";
+    }
+
+    .kartotajs-tabula td:nth-child(5)::before {
+        content: "Darbības";
+    }
+
+    .kartotajs-table-input,
+    .kartotajs-daudzums-input {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+    }
+
+    .kartotajs-darbibas {
+        width: 100% !important;
+        margin-top: 0 !important;
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+    }
+
+    .kartotajs-darbibas .admin-poga {
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 520px) {
+    .kartotajs-lapa {
+        padding: 8px !important;
+    }
+
+    .kartotajs-lapa .admin-nav-bar,
+    .kartotajs-lapa .admin-saturs,
+    .admin-tabula-wrap,
+    .plauktu-noslodze,
+    .plaukta-kartite,
+    .kartotajs-tabula tr {
+        border-radius: 16px !important;
+    }
+
+    .kartotajs-lapa .admin-saturs,
+    .admin-tabula-wrap,
+    .plauktu-noslodze {
+        padding: 12px !important;
+    }
+
+    .kartotajs-form input,
+    .kartotajs-form select,
+    .kartotajs-row-form input,
+    .kartotajs-row-form select,
+    .kartotajs-map-form input,
+    .kartotajs-map-form select,
+    .kartotajs-table-input,
+    .admin-poga {
+        min-height: 40px !important;
+        font-size: 13px !important;
+    }
+
+    .plaukta-nosaukums {
+        font-size: 24px !important;
+    }
+
+    .plaukta-dati strong {
+        font-size: 22px !important;
+    }
+}

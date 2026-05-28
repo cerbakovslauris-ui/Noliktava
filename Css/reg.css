@@ -302,3 +302,141 @@ main {
         min-height: 44px;
     }
 }
+
+/* Papildu @media pielāgojumi reģistrācijas lapai */
+@media (max-width: 900px) {
+    body {
+        overflow-x: hidden;
+    }
+
+    main {
+        min-height: 100dvh;
+        align-items: flex-start;
+        padding-top: 88px;
+    }
+
+    .reg {
+        width: min(100%, 560px);
+    }
+
+    .reg_teksts {
+        width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    main {
+        padding: 76px 12px 22px;
+    }
+
+    .back {
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        width: auto;
+        min-height: 40px;
+        padding: 9px 12px;
+        font-size: 13px;
+    }
+
+    .reg_teksts {
+        padding: 20px;
+        border-radius: 20px;
+    }
+
+    .reg_teksts form {
+        gap: 8px;
+        margin-top: 16px;
+    }
+
+    .reg_teksts h1 {
+        font-size: 30px;
+        line-height: 1.12;
+    }
+
+    .reg_teksts h3 {
+        font-size: 13px;
+    }
+
+    .reg_teksts input,
+    .reg_teksts button {
+        min-height: 44px;
+        padding: 11px 12px;
+        font-size: 14px;
+        border-radius: 13px;
+    }
+
+    .paroles_drošība {
+        gap: 9px !important;
+        margin: 6px 0 14px !important;
+        padding: 13px !important;
+        border-radius: 15px !important;
+    }
+
+    .paroles_drošība .parole-noteikums {
+        gap: 9px !important;
+        font-size: 13px !important;
+        line-height: 1.25 !important;
+    }
+
+    .paroles_drošība .parole-noteikums i {
+        width: 16px !important;
+        height: 16px !important;
+        flex-basis: 16px !important;
+        font-size: 12px !important;
+    }
+}
+
+@media (max-width: 380px) {
+    main {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .back {
+        left: 8px;
+        right: 8px;
+    }
+
+    .reg_teksts {
+        padding: 16px;
+    }
+
+    .reg_teksts h1 {
+        font-size: 26px;
+    }
+
+    .paroles_drošība .parole-noteikums {
+        font-size: 12px !important;
+    }
+}
+
+@media (max-height: 620px) and (orientation: landscape) {
+    main {
+        align-items: flex-start;
+        padding-top: 64px;
+        padding-bottom: 16px;
+    }
+
+    .back {
+        top: 10px;
+    }
+
+    .reg_teksts {
+        padding: 18px;
+    }
+
+    .reg_teksts h1 {
+        font-size: 28px;
+    }
+
+    .reg_teksts form {
+        gap: 6px;
+        margin-top: 12px;
+    }
+
+    .paroles_drošība {
+        padding: 10px 12px !important;
+        gap: 6px !important;
+    }
+}

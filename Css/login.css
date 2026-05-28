@@ -19,6 +19,8 @@
 
 html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 body {
@@ -29,6 +31,7 @@ body {
         radial-gradient(circle at top left, rgba(246, 83, 159, 0.16), transparent 34%),
         linear-gradient(135deg, #fff7fb 0%, var(--bg) 52%, #fae7f3 100%);
     color: var(--text);
+    overflow-x: hidden;
 }
 
 body::before {
@@ -105,10 +108,11 @@ main {
 }
 
 .log_teksts p {
-    margin: 0 0 18px;
+    margin: 18px 0 0;
     color: var(--muted);
     line-height: 1.65;
     font-size: 15px;
+    text-align: center;
 }
 
 .log_teksts form {
@@ -182,6 +186,20 @@ main {
 }
 
 /* Responsīvais dizains */
+@media (max-width: 900px) {
+    main {
+        padding: 86px 16px 34px;
+    }
+
+    .login {
+        width: min(500px, 100%);
+    }
+
+    .log_teksts {
+        padding: 30px;
+    }
+}
+
 @media (max-width: 760px) {
     main {
         align-items: flex-start;
@@ -212,13 +230,15 @@ main {
 
 @media (max-width: 520px) {
     main {
-        padding: 74px 10px 20px;
+        padding: 76px 10px 20px;
     }
 
     .back {
         left: 10px;
         right: 10px;
         width: calc(100% - 20px);
+        min-height: 40px;
+        border-radius: 14px;
     }
 
     .log_teksts {
@@ -228,6 +248,7 @@ main {
 
     .log_teksts h1 {
         font-size: 28px;
+        text-align: center;
     }
 
     .log_teksts p,
@@ -239,5 +260,43 @@ main {
     .log_teksts input,
     .log_teksts button {
         min-height: 44px;
+    }
+}
+
+@media (max-width: 360px) {
+    main {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .back {
+        left: 8px;
+        right: 8px;
+        width: calc(100% - 16px);
+        font-size: 12px;
+    }
+
+    .log_teksts {
+        padding: 16px;
+    }
+
+    .log_teksts h1 {
+        font-size: 25px;
+    }
+}
+
+@media (max-height: 620px) and (orientation: landscape) {
+    main {
+        align-items: flex-start;
+        padding-top: 72px;
+        padding-bottom: 18px;
+    }
+
+    .back {
+        top: 12px;
+    }
+
+    .log_teksts {
+        padding: 20px;
     }
 }
