@@ -129,6 +129,53 @@ function atrastVaiIzveidotPlauktu(PDO $pdo, string $nosaukums): int
     return (int) $pdo->lastInsertId();
 }
 
+
+function iegutPrecesDaudzumu(PDO $pdo, string $produktuTabula, string $produktaDaudzumaKolonna, int $productId): ?int
+{
+    if ($productId <= 0 || $produktuTabula === '' || $produktaDaudzumaKolonna === '') {
+        return null;
+    }
+
+    $stmt = $pdo->prepare('SELECT ' . $produktaDaudzumaKolonna . ' FROM ' . $produktuTabula . ' WHERE id = ? LIMIT 1');
+    $stmt->execute([$productId]);
+    $daudzums = $stmt->fetchColumn();
+
+    if ($daudzums === false || $daudzums === null) {
+        return null;
+    }
+
+    return max(0, (int) $daudzums);
+}
+
+function parbauditPrecesDaudzumuPlaukta(PDO $pdo, string $produktuTabula, string $produktaDaudzumaKolonna, int $productId, int $jaunaisDaudzums, int $iznemotKartesanasId = 0): void
+{
+    if ($jaunaisDaudzums < 0) {
+        throw new RuntimeException('Daudzums nedrīkst būt mazāks par 0.');
+    }
+
+    $precesDaudzums = iegutPrecesDaudzumu($pdo, $produktuTabula, $produktaDaudzumaKolonna, $productId);
+
+    if ($precesDaudzums === null) {
+        throw new RuntimeException('Prece netika atrasta vai tai nav norādīts kopējais daudzums.');
+    }
+
+    if ($iznemotKartesanasId > 0) {
+        $stmt = $pdo->prepare('SELECT COALESCE(SUM(daudzums), 0) FROM preces_plauktos WHERE product_id = ? AND id <> ?');
+        $stmt->execute([$productId, $iznemotKartesanasId]);
+    } else {
+        $stmt = $pdo->prepare('SELECT COALESCE(SUM(daudzums), 0) FROM preces_plauktos WHERE product_id = ?');
+        $stmt->execute([$productId]);
+    }
+
+    $jauPlauktos = max(0, (int) $stmt->fetchColumn());
+    $pecIzmainam = $jauPlauktos + $jaunaisDaudzums;
+
+    if ($pecIzmainam > $precesDaudzums) {
+        $atlikums = max(0, $precesDaudzums - $jauPlauktos);
+        throw new RuntimeException('Plauktā nevar ielikt vairāk nekā ir noliktavā. Pieejams ievietošanai: ' . $atlikums . ', preces kopējais daudzums: ' . $precesDaudzums . '.');
+    }
+}
+
 function plauktsJauIzmantots(PDO $pdo, int $plauktsId, int $iznemotKartesanasId = 0): bool
 {
     if ($iznemotKartesanasId > 0) {
@@ -403,11 +450,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $plauktaNosaukums = (string) ($_POST['plaukts'] ?? '');
             $daudzums = max(0, (int) ($_POST['daudzums'] ?? 0));
             $piezime = trim($_POST['piezime'] ?? '');
-            $plauktsId = atrastVaiIzveidotPlauktu($pdo, $plauktaNosaukums);
 
             if ($productId <= 0) {
                 throw new RuntimeException('Izvēlies preci un ievadi plauktu.');
             }
+
+            parbauditPrecesDaudzumuPlaukta($pdo, $produktuTabula, $produktaDaudzumaKolonna, $productId, $daudzums);
+
+            $plauktsId = atrastVaiIzveidotPlauktu($pdo, $plauktaNosaukums);
 
             if (plauktsJauIzmantots($pdo, $plauktsId)) {
                 throw new RuntimeException('Šis plaukts jau ir izmantots. Izvēlies citu plauktu.');
@@ -428,7 +478,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new RuntimeException('Pārbaudi kartēšanas datus.');
             }
 
-            $vecieDatiStmt = $pdo->prepare('SELECT plaukts_id, daudzums, piezime FROM preces_plauktos WHERE id = ? LIMIT 1');
+            $vecieDatiStmt = $pdo->prepare('SELECT product_id, plaukts_id, daudzums, piezime FROM preces_plauktos WHERE id = ? LIMIT 1');
             $vecieDatiStmt->execute([$id]);
             $vecieDati = $vecieDatiStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -436,9 +486,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new RuntimeException('Prece plauktā netika atrasta.');
             }
 
+            $productId = (int) ($vecieDati['product_id'] ?? 0);
             $vecaisPlauktsId = (int) ($vecieDati['plaukts_id'] ?? 0);
             $vecaisDaudzums = (int) ($vecieDati['daudzums'] ?? 0);
             $vecaPiezime = trim((string) ($vecieDati['piezime'] ?? ''));
+
+            parbauditPrecesDaudzumuPlaukta($pdo, $produktuTabula, $produktaDaudzumaKolonna, $productId, $daudzums, $id);
 
             $plauktsId = atrastVaiIzveidotPlauktu($pdo, $plauktaNosaukums);
 
@@ -504,6 +557,7 @@ if (hasPdo()) {
 
             $sql = 'SELECT pp.id, pp.product_id, pp.plaukts_id, pp.daudzums, pp.piezime, pp.updated_at,
                            p.' . $produktaNosaukumaKolonna . ' AS preces_nosaukums,
+                           p.' . $produktaDaudzumaKolonna . ' AS daudzums_kopa,
                           pl.nosaukums AS plaukts_nosaukums
                     FROM preces_plauktos pp
                     INNER JOIN ' . $produktuTabula . ' p ON p.id = pp.product_id
@@ -586,10 +640,10 @@ if (hasPdo()) {
                             <input type="hidden" name="action" value="add_mapping">
                             <div>
                                 <label>Prece</label>
-                                <select name="product_id" required>
+                                <select name="product_id" id="kartotajs-product-select" required>
                                     <option value="">Izvēlies preci</option>
                                     <?php foreach ($preces as $prece): ?>
-                                        <option value="<?php echo e($prece['id']); ?>"><?php echo e($prece['nosaukums']); ?></option>
+                                        <option value="<?php echo e($prece['id']); ?>" data-max="<?php echo e($prece['daudzums_kopa'] ?? 0); ?>"><?php echo e($prece['nosaukums']); ?> (pieejams: <?php echo e($prece['daudzums_kopa'] ?? 0); ?>)</option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -599,7 +653,7 @@ if (hasPdo()) {
                             </div>
                             <div>
                                 <label>Daudzums</label>
-                                <input type="number" name="daudzums" min="0" value="0">
+                                <input id="kartotajs-add-daudzums" type="number" name="daudzums" min="0" max="0" value="0">
                             </div>
                             <div>
                                 <label>Piezīme</label>
@@ -632,7 +686,7 @@ if (hasPdo()) {
                                                 <input class="kartotajs-table-input plaukta-ievade" type="text" name="plaukts" value="<?php echo e($rinda['plaukts_nosaukums']); ?>" data-kartesanas-id="<?php echo e($rinda['id']); ?>" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" form="kartotajs-update-<?php echo e($rinda['id']); ?>" required>
                                             </td>
                                             <td>
-                                                <input class="kartotajs-table-input kartotajs-daudzums-input" type="number" name="daudzums" min="0" value="<?php echo e($rinda['daudzums']); ?>" form="kartotajs-update-<?php echo e($rinda['id']); ?>">
+                                                <input class="kartotajs-table-input kartotajs-daudzums-input" type="number" name="daudzums" min="0" max="<?php echo e($rinda['daudzums_kopa'] ?? 0); ?>" title="Maksimālais daudzums: <?php echo e($rinda['daudzums_kopa'] ?? 0); ?>" value="<?php echo e($rinda['daudzums']); ?>" form="kartotajs-update-<?php echo e($rinda['id']); ?>">
                                             </td>
                                             <td>
                                                 <input class="kartotajs-table-input" type="text" name="piezime" value="<?php echo e($rinda['piezime'] ?? ''); ?>" placeholder="Piezīme" form="kartotajs-update-<?php echo e($rinda['id']); ?>">
@@ -800,6 +854,30 @@ if (hasPdo()) {
 
                 parbauditVaiPlauktsBrivs(input);
             });
+
+            const productSelect = document.getElementById('kartotajs-product-select');
+            const addDaudzumsInput = document.getElementById('kartotajs-add-daudzums');
+
+            function atjaunotMaksimaloDaudzumu() {
+                if (!productSelect || !addDaudzumsInput) {
+                    return;
+                }
+
+                const selectedOption = productSelect.options[productSelect.selectedIndex];
+                const maxDaudzums = selectedOption ? parseInt(selectedOption.dataset.max || '0', 10) : 0;
+                const drošsMax = Number.isNaN(maxDaudzums) ? 0 : Math.max(0, maxDaudzums);
+
+                addDaudzumsInput.max = String(drošsMax);
+
+                if (parseInt(addDaudzumsInput.value || '0', 10) > drošsMax) {
+                    addDaudzumsInput.value = String(drošsMax);
+                }
+            }
+
+            if (productSelect) {
+                productSelect.addEventListener('change', atjaunotMaksimaloDaudzumu);
+                atjaunotMaksimaloDaudzumu();
+            }
 
             window.addEventListener('hashchange', showPanelFromHash);
             showPanelFromHash();
