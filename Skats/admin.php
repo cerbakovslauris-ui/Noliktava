@@ -12,6 +12,9 @@ $lietotajuIeladesKluda = null;
 $products = [];
 $produktuIeladesKluda = null;
 $atskaitesKluda = null;
+$kartesanas = [];
+$plaukti = [];
+$kartosanasKluda = null;
 $atskaite = [
     'kop_lietotaji' => 0,
     'kop_preces' => 0,
@@ -70,6 +73,32 @@ try {
 } catch (PDOException $e) {
     $atskaitesKluda = 'Neizdevās ielādēt atskaišu datus.';
 }
+
+try {
+    $kartesanasVaicajums = $pdo->query(
+        'SELECT pp.id, pp.product_id, pp.plaukts_id, pp.daudzums, pp.piezime,
+                p.name AS preces_nosaukums, pl.nosaukums AS plaukts_nosaukums
+         FROM preces_plauktos pp
+         INNER JOIN products p ON p.id = pp.product_id
+         INNER JOIN plaukti pl ON pl.id = pp.plaukts_id
+         ORDER BY pl.nosaukums ASC, p.name ASC'
+    );
+    $kartesanas = $kartesanasVaicajums->fetchAll();
+
+    $plauktuSaraksts = [];
+    foreach ($kartesanas as $rinda) {
+        $plauktsId = (int) $rinda['plaukts_id'];
+        if (!isset($plauktuSaraksts[$plauktsId])) {
+            $plauktuSaraksts[$plauktsId] = [
+                'id' => $plauktsId,
+                'nosaukums' => $rinda['plaukts_nosaukums'],
+            ];
+        }
+    }
+    $plaukti = array_values($plauktuSaraksts);
+} catch (Throwable $e) {
+    $kartosanasKluda = 'Neizdevās ielādēt kartošanas datus.';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -100,6 +129,7 @@ try {
                     <li><a class="active" href="#lietotaji"><i class="fa fa-user" aria-hidden="true"></i>Lietotāji</a></li>
                     <li><a href="#pievienot-preces"><i class="fa fa-plus" aria-hidden="true"></i>Pievienot preces</a></li>
                     <li><a href="#rediget-preces"><i class="fa fa-edit" aria-hidden="true"></i>Rediģēt preces</a></li>
+                    <li><a href="#kartosana"><i class="fa fa-th" aria-hidden="true"></i>Kartošana</a></li>
                     <li><a href="#atskaites"><i class="fa fa-line-chart" aria-hidden="true"></i>Atskaites</a></li>
                 </ul>
             </nav>
@@ -263,6 +293,78 @@ try {
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
+                    </div>
+                <?php endif; ?>
+            </article>
+
+            <article id="kartosana" class="admin-panel" data-panel>
+                <h2>Kartošana - Preces plauktos</h2>
+                <p>Piešķir preces plauktiem un pārvaldi to izvietojumu.</p>
+
+                <?php if ($kartosanasKluda !== null): ?>
+                    <p class="admin-kluda"><?php echo htmlspecialchars($kartosanasKluda, ENT_QUOTES, 'UTF-8'); ?></p>
+                <?php else: ?>
+                    <div class="admin-tabula-wrap">
+                        <h3>Piesaistīt preci plauktam</h3>
+                        <form method="post" action="../Includes/admin_inc/admin_piesaistiit_plauktu.php" class="admin-form">
+                            <div>
+                                <label>Prece</label>
+                                <select name="product_id" required>
+                                    <option value="">-- Izvēlies preci --</option>
+                                    <?php foreach ($products as $product): ?>
+                                        <option value="<?php echo (int) $product['id']; ?>"><?php echo htmlspecialchars((string) ($product['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Plaukts (A-F, 1-30)</label>
+                                <input type="text" name="plaukts" placeholder="Piemēram: A-1 vai F-30" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30" required>
+                            </div>
+                            <div>
+                                <label>Daudzums</label>
+                                <input type="number" name="daudzums" min="0" value="0">
+                            </div>
+                            <div>
+                                <label>Piezīme</label>
+                                <input type="text" name="piezime" placeholder="Piemēram: apakšējais līmenis">
+                            </div>
+                            <button class="admin-poga" type="submit"><i class="fa fa-check"></i>Piesaistīt</button>
+                        </form>
+                    </div>
+
+                    <div class="admin-tabula-wrap">
+                        <h3>Preces plauktos</h3>
+                        <?php if (!$kartesanas): ?>
+                            <p>Vēl nav piesaistīta neviena prece.</p>
+                        <?php else: ?>
+                            <table class="admin-tabula">
+                                <thead>
+                                    <tr>
+                                        <th>Prece</th>
+                                        <th>Plaukts</th>
+                                        <th>Daudzums</th>
+                                        <th>Piezīme</th>
+                                        <th>Darbības</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($kartesanas as $rinda): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars((string) $rinda['preces_nosaukums'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars((string) $rinda['plaukts_nosaukums'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo (int) $rinda['daudzums']; ?></td>
+                                            <td><?php echo htmlspecialchars((string) ($rinda['piezime'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td>
+                                                <form method="post" action="../Includes/admin_inc/admin_dzelst_kartesanu.php" style="display:inline;" onsubmit="return confirm('Dzēst šo piesaisti?');">
+                                                    <input type="hidden" name="id" value="<?php echo (int) $rinda['id']; ?>">
+                                                    <button class="admin-poga admin-poga-dzest" type="submit"><i class="fa fa-trash"></i>Dzēst</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
             </article>
