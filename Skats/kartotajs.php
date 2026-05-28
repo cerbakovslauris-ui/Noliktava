@@ -538,6 +538,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $plaukti = [];
 $preces = [];
 $kartesanas = [];
+$precuStatusi = [];
 $statistika = [
     'plaukti' => 0,
     'kartetas_preces' => 0,
@@ -567,6 +568,32 @@ if (hasPdo()) {
             $kartesanas = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
             $statistika['kartetas_preces'] = count($kartesanas);
             $statistika['kop_daudzums'] = array_sum(array_map(fn($r) => (int) $r['daudzums'], $kartesanas));
+
+            foreach ($kartesanas as $rinda) {
+                $productId = (int) ($rinda['product_id'] ?? 0);
+                if ($productId <= 0) {
+                    continue;
+                }
+
+                $precuStatusi[$productId] = [
+                    'ir_piesaiste' => true,
+                    'plaukts' => (string) ($rinda['plaukts_nosaukums'] ?? ''),
+                ];
+            }
+
+            foreach ($preces as $prece) {
+                $productId = (int) ($prece['id'] ?? 0);
+                if ($productId <= 0) {
+                    continue;
+                }
+
+                if (!isset($precuStatusi[$productId])) {
+                    $precuStatusi[$productId] = [
+                        'ir_piesaiste' => false,
+                        'plaukts' => '',
+                    ];
+                }
+            }
 
             $plauktuSaraksts = [];
             foreach ($kartesanas as $rinda) {
@@ -705,6 +732,38 @@ if (hasPdo()) {
                                                     <button class="admin-poga admin-poga-mainit" type="submit" form="kartotajs-update-<?php echo e($rinda['id']); ?>">Saglabāt</button>
                                                 </div>
                                             </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="admin-tabula-wrap">
+                        <h3>Visas preces</h3>
+                        <?php if (!$preces): ?>
+                            <p>Preču saraksts ir tukšs.</p>
+                        <?php else: ?>
+                            <table class="admin-tabula kartotajs-tabula">
+                                <thead>
+                                    <tr>
+                                        <th>Prece</th>
+                                        <th>Kopējais daudzums</th>
+                                        <th>Statuss</th>
+                                        <th>Plaukts</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($preces as $prece): ?>
+                                        <?php
+                                        $productId = (int) ($prece['id'] ?? 0);
+                                        $statuss = $precuStatusi[$productId] ?? ['ir_piesaiste' => false, 'plaukts' => ''];
+                                        ?>
+                                        <tr>
+                                            <td><?php echo e($prece['nosaukums']); ?></td>
+                                            <td><?php echo e($prece['daudzums_kopa'] ?? 0); ?></td>
+                                            <td><?php echo $statuss['ir_piesaiste'] ? 'Piesaistīta' : 'Nav piesaistīta'; ?></td>
+                                            <td><?php echo e($statuss['plaukts'] !== '' ? $statuss['plaukts'] : '-'); ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>

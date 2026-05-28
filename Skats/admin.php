@@ -16,6 +16,7 @@ $pasutijumuIeladesKluda = null;
 $atskaitesKluda = null;
 $kartesanas = [];
 $plaukti = [];
+$precuStatusi = [];
 $kartosanasKluda = null;
 $atskaite = [
     'kop_lietotaji' => 0,
@@ -104,13 +105,37 @@ try {
 try {
     $kartesanasVaicajums = $pdo->query(
         'SELECT pp.id, pp.product_id, pp.plaukts_id, pp.daudzums, pp.piezime,
-                p.name AS preces_nosaukums, pl.nosaukums AS plaukts_nosaukums
+                p.name AS preces_nosaukums, p.quantity AS daudzums_kopa, pl.nosaukums AS plaukts_nosaukums
          FROM preces_plauktos pp
          INNER JOIN products p ON p.id = pp.product_id
          INNER JOIN plaukti pl ON pl.id = pp.plaukts_id
          ORDER BY pl.nosaukums ASC, p.name ASC'
     );
     $kartesanas = $kartesanasVaicajums->fetchAll();
+
+    foreach ($products as $product) {
+        $productId = (int) ($product['id'] ?? 0);
+        if ($productId <= 0) {
+            continue;
+        }
+
+        $precuStatusi[$productId] = [
+            'ir_piesaiste' => false,
+            'plaukts' => '',
+        ];
+    }
+
+    foreach ($kartesanas as $rinda) {
+        $productId = (int) ($rinda['product_id'] ?? 0);
+        if ($productId <= 0) {
+            continue;
+        }
+
+        $precuStatusi[$productId] = [
+            'ir_piesaiste' => true,
+            'plaukts' => (string) ($rinda['plaukts_nosaukums'] ?? ''),
+        ];
+    }
 
     $plauktuSaraksts = [];
     foreach ($kartesanas as $rinda) {
@@ -384,15 +409,58 @@ try {
                                     <?php foreach ($kartesanas as $rinda): ?>
                                         <tr>
                                             <td><?php echo htmlspecialchars((string) $rinda['preces_nosaukums'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                            <td><?php echo htmlspecialchars((string) $rinda['plaukts_nosaukums'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                            <td><?php echo (int) $rinda['daudzums']; ?></td>
-                                            <td><?php echo htmlspecialchars((string) ($rinda['piezime'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td>
+                                                <input type="text" name="plaukts" value="<?php echo htmlspecialchars((string) $rinda['plaukts_nosaukums'], ENT_QUOTES, 'UTF-8'); ?>" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" form="admin-kartosana-update-<?php echo (int) $rinda['id']; ?>" required>
+                                            </td>
+                                            <td>
+                                                <input type="number" name="daudzums" min="0" max="<?php echo max(0, (int) ($rinda['daudzums_kopa'] ?? 0)); ?>" value="<?php echo (int) $rinda['daudzums']; ?>" form="admin-kartosana-update-<?php echo (int) $rinda['id']; ?>">
+                                            </td>
+                                            <td>
+                                                <input type="text" name="piezime" value="<?php echo htmlspecialchars((string) ($rinda['piezime'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" placeholder="Piezīme" form="admin-kartosana-update-<?php echo (int) $rinda['id']; ?>">
+                                            </td>
+                                            <td>
+                                                <form id="admin-kartosana-update-<?php echo (int) $rinda['id']; ?>" method="post" action="../Includes/admin_inc/admin_piesaistiit_plauktu.php" style="display:inline;">
+                                                    <input type="hidden" name="action" value="update_mapping">
+                                                    <input type="hidden" name="id" value="<?php echo (int) $rinda['id']; ?>">
+                                                </form>
+                                                <button class="admin-poga admin-poga-mainit" type="submit" form="admin-kartosana-update-<?php echo (int) $rinda['id']; ?>"></i>Saglabāt</button>
                                                 <form method="post" action="../Includes/admin_inc/admin_dzelst_kartesanu.php" style="display:inline;" onsubmit="return confirm('Dzēst šo piesaisti?');">
                                                     <input type="hidden" name="id" value="<?php echo (int) $rinda['id']; ?>">
                                                     <button class="admin-poga admin-poga-dzest" type="submit"><i class="fa fa-trash"></i>Dzēst</button>
                                                 </form>
                                             </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="admin-tabula-wrap">
+                        <h3>Visas preces</h3>
+                        <?php if (!$products): ?>
+                            <p>Preču saraksts ir tukšs.</p>
+                        <?php else: ?>
+                            <table class="admin-tabula">
+                                <thead>
+                                    <tr>
+                                        <th>Prece</th>
+                                        <th>Kopējais daudzums</th>
+                                        <th>Statuss</th>
+                                        <th>Plaukts</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($products as $product): ?>
+                                        <?php
+                                        $productId = (int) ($product['id'] ?? 0);
+                                        $statuss = $precuStatusi[$productId] ?? ['ir_piesaiste' => false, 'plaukts' => ''];
+                                        ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars((string) ($product['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo max(0, (int) ($product['quantity'] ?? 0)); ?></td>
+                                            <td><?php echo $statuss['ir_piesaiste'] ? 'Piesaistīta' : 'Nav piesaistīta'; ?></td>
+                                            <td><?php echo htmlspecialchars((string) ($statuss['plaukts'] !== '' ? $statuss['plaukts'] : '-'), ENT_QUOTES, 'UTF-8'); ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
