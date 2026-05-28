@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../Includes/log_reg_inc/auth.inc.php';
+require_once __DIR__ . '/../Includes/dbh.inc.php';
 $auth = iegutAktivoLietotaju();
 
 $lietotajaVards = (string) ($auth['vards'] ?? '');

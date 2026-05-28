@@ -14,6 +14,9 @@
         <div class="login">
             <div class="log_teksts">
                 <h1>Ienākt</h1>
+                <?php if (isset($_GET['session_expired']) && $_GET['session_expired'] == '1'): ?>
+                    <p class="admin-kluda">Sesija ir beigusies. Ienāc vēlreiz.</p>
+                <?php endif; ?>
                 <form action="../../Includes/log_reg_inc/log_inc.php" method="POST">
                     <h3>Lietotajvārds</h3>
                     <input type="text" name="lietotajvards" placeholder='Lietotajvards' pattern="\S+" title="Lietotājvārdā nedrīkst būt atstarpes" required>

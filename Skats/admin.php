@@ -318,7 +318,7 @@ try {
                             </div>
                             <div>
                                 <label>Plaukts (A-F, 1-30)</label>
-                                <input type="text" name="plaukts" placeholder="Piemēram: A-1 vai F-30" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30" required>
+                                <input type="text" name="plaukts" maxlength="4" placeholder="Piemēram: A-1 vai F-30" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30" required>
                             </div>
                             <div>
                                 <label>Daudzums</label>
@@ -483,7 +483,7 @@ try {
                 });
             }
 
-            document.querySelectorAll('input[name="shelf_location"]').forEach((input) => {
+            document.querySelectorAll('input[name="shelf_location"], input[name="plaukts"]').forEach((input) => {
                 input.addEventListener('input', () => {
                     input.value = normalizeShelfLocation(input.value);
                     validateShelfInput(input);

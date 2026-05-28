@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../Includes/dbh.inc.php';
 require_once __DIR__ . '/../Includes/log_reg_inc/auth.inc.php';
 $auth = parbauditAutorizaciju('kartotajs');
 
