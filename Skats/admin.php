@@ -312,7 +312,7 @@ try {
                                 <select name="product_id" required>
                                     <option value="">-- Izvēlies preci --</option>
                                     <?php foreach ($products as $product): ?>
-                                        <option value="<?php echo (int) $product['id']; ?>"><?php echo htmlspecialchars((string) ($product['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></option>
+                                        <option value="<?php echo (int) $product['id']; ?>" data-max="<?php echo max(0, (int) ($product['quantity'] ?? 0)); ?>"><?php echo htmlspecialchars((string) ($product['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?> (pieejams: <?php echo max(0, (int) ($product['quantity'] ?? 0)); ?>)</option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -322,7 +322,7 @@ try {
                             </div>
                             <div>
                                 <label>Daudzums</label>
-                                <input type="number" name="daudzums" min="0" value="0">
+                                <input type="number" name="daudzums" min="0" max="0" value="0">
                             </div>
                             <div>
                                 <label>Piezīme</label>
@@ -496,6 +496,31 @@ try {
 
                 validateShelfInput(input);
             });
+
+            const adminKartosanaForma = document.querySelector('form[action="../Includes/admin_inc/admin_piesaistiit_plauktu.php"]');
+            const adminProductSelect = adminKartosanaForma ? adminKartosanaForma.querySelector('select[name="product_id"]') : null;
+            const adminDaudzumsInput = adminKartosanaForma ? adminKartosanaForma.querySelector('input[name="daudzums"]') : null;
+
+            function atjaunotAdminMaxDaudzumu() {
+                if (!adminProductSelect || !adminDaudzumsInput) {
+                    return;
+                }
+
+                const selectedOption = adminProductSelect.options[adminProductSelect.selectedIndex];
+                const maxDaudzums = selectedOption ? parseInt(selectedOption.getAttribute('data-max') || '0', 10) : 0;
+                const drosaisMax = Number.isNaN(maxDaudzums) ? 0 : Math.max(0, maxDaudzums);
+
+                adminDaudzumsInput.max = String(drosaisMax);
+
+                if (parseInt(adminDaudzumsInput.value || '0', 10) > drosaisMax) {
+                    adminDaudzumsInput.value = String(drosaisMax);
+                }
+            }
+
+            if (adminProductSelect && adminDaudzumsInput) {
+                adminProductSelect.addEventListener('change', atjaunotAdminMaxDaudzumu);
+                atjaunotAdminMaxDaudzumu();
+            }
 
             window.addEventListener('hashchange', showPanelFromHash);
             showPanelFromHash();

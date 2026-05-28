@@ -5,6 +5,45 @@ require_once __DIR__ . '/../log_reg_inc/auth.inc.php';
 
 $auth = parbauditAutorizaciju('admin');
 
+function adminIegutPrecesDaudzumu(PDO $pdo, int $productId): ?int
+{
+    if ($productId <= 0) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare('SELECT quantity FROM products WHERE id = ? LIMIT 1');
+    $stmt->execute([$productId]);
+    $daudzums = $stmt->fetchColumn();
+
+    if ($daudzums === false || $daudzums === null) {
+        return null;
+    }
+
+    return max(0, (int) $daudzums);
+}
+
+function adminParbauditPrecesDaudzumuPlaukta(PDO $pdo, int $productId, int $jaunaisDaudzums): void
+{
+    if ($jaunaisDaudzums < 0) {
+        throw new RuntimeException('Daudzums nedrīkst būt mazāks par 0.');
+    }
+
+    $precesDaudzums = adminIegutPrecesDaudzumu($pdo, $productId);
+    if ($precesDaudzums === null) {
+        throw new RuntimeException('Prece netika atrasta vai tai nav norādīts kopējais daudzums.');
+    }
+
+    $stmt = $pdo->prepare('SELECT COALESCE(SUM(daudzums), 0) FROM preces_plauktos WHERE product_id = ?');
+    $stmt->execute([$productId]);
+    $jauPlauktos = max(0, (int) $stmt->fetchColumn());
+
+    $pecIzmainam = $jauPlauktos + $jaunaisDaudzums;
+    if ($pecIzmainam > $precesDaudzums) {
+        $atlikums = max(0, $precesDaudzums - $jauPlauktos);
+        throw new RuntimeException('Plauktā nevar ielikt vairāk nekā ir noliktavā. Pieejams ievietošanai: ' . $atlikums . ', preces kopējais daudzums: ' . $precesDaudzums . '.');
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $productId = (int) ($_POST['product_id'] ?? 0);
     $plauktaNosaukums = (string) ($_POST['plaukts'] ?? '');
@@ -54,6 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: ../../Skats/admin.php#kartosana');
             exit;
         }
+
+        adminParbauditPrecesDaudzumuPlaukta($pdo, $productId, $daudzums);
 
         // Piesaista preci plauktam
         $insert = $pdo->prepare('INSERT INTO preces_plauktos (product_id, plaukts_id, daudzums, piezime) VALUES (?, ?, ?, ?)');
