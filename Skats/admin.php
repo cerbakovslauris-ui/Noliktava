@@ -27,6 +27,177 @@ $atskaite = [
 $flashZina = $_SESSION['admin_flash'] ?? null;
 unset($_SESSION['admin_flash']);
 
+
+function adminNovirzitArZinu(string $hash, string $tips, string $teksts): void
+{
+    $_SESSION['admin_flash'] = [
+        'tips' => $tips,
+        'teksts' => $teksts,
+    ];
+
+    header('Location: admin.php#' . $hash);
+    exit;
+}
+
+function adminNormalizePlauktaNosaukums(string $nosaukums): string
+{
+    $nosaukums = strtoupper(trim($nosaukums));
+    $nosaukums = preg_replace('/\s+/', '', $nosaukums) ?? '';
+
+    if ($nosaukums === '') {
+        throw new RuntimeException('Plaukta nosaukums nedrīkst būt tukšs.');
+    }
+
+    if (!preg_match('/^([A-F])-?([1-9]|[12][0-9]|30)$/', $nosaukums, $sakritiba)) {
+        throw new RuntimeException('Plauktu var ievadīt tikai no A līdz F un no 1 līdz 30, piemēram, A-1 vai F-30.');
+    }
+
+    return $sakritiba[1] . '-' . $sakritiba[2];
+}
+
+function adminAtrastVaiIzveidotPlauktu(PDO $pdo, string $nosaukums): int
+{
+    $nosaukums = adminNormalizePlauktaNosaukums($nosaukums);
+
+    $meklet = $pdo->prepare('SELECT id FROM plaukti WHERE nosaukums = ? LIMIT 1');
+    $meklet->execute([$nosaukums]);
+    $atrastsId = $meklet->fetchColumn();
+
+    if ($atrastsId !== false) {
+        return (int) $atrastsId;
+    }
+
+    $izveidot = $pdo->prepare('INSERT INTO plaukti (nosaukums, apraksts) VALUES (?, ?)');
+    $izveidot->execute([$nosaukums, '']);
+
+    return (int) $pdo->lastInsertId();
+}
+
+function adminPlauktsJauIzmantots(PDO $pdo, int $plauktsId, ?int $iznemotId = null): bool
+{
+    if ($iznemotId !== null) {
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM preces_plauktos WHERE plaukts_id = ? AND id <> ?');
+        $stmt->execute([$plauktsId, $iznemotId]);
+    } else {
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM preces_plauktos WHERE plaukts_id = ?');
+        $stmt->execute([$plauktsId]);
+    }
+
+    return (int) $stmt->fetchColumn() > 0;
+}
+
+function adminIegutPrecesDaudzumu(PDO $pdo, int $productId): int
+{
+    $stmt = $pdo->prepare('SELECT quantity FROM products WHERE id = ? LIMIT 1');
+    $stmt->execute([$productId]);
+    $daudzums = $stmt->fetchColumn();
+
+    if ($daudzums === false || $daudzums === null) {
+        throw new RuntimeException('Prece netika atrasta.');
+    }
+
+    return max(0, (int) $daudzums);
+}
+
+function adminParbauditDaudzumu(PDO $pdo, int $productId, int $daudzums): void
+{
+    $precesDaudzums = adminIegutPrecesDaudzumu($pdo, $productId);
+
+    if ($daudzums > $precesDaudzums) {
+        throw new RuntimeException('Plauktā nevar ielikt lielāku daudzumu nekā precei ir noliktavā. Pieejams: ' . $precesDaudzums . '.');
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array($_POST['action'], ['add_mapping', 'update_mapping'], true)) {
+    $tips = 'ok';
+    $teksts = '';
+
+    try {
+        $action = (string) $_POST['action'];
+
+        if ($action === 'add_mapping') {
+            $productId = (int) ($_POST['product_id'] ?? 0);
+            $plauktaNosaukums = (string) ($_POST['plaukts'] ?? '');
+            $daudzums = max(0, (int) ($_POST['daudzums'] ?? 0));
+            $piezime = trim($_POST['piezime'] ?? '');
+
+            if ($productId <= 0) {
+                throw new RuntimeException('Izvēlies preci un ievadi plauktu.');
+            }
+
+            adminParbauditDaudzumu($pdo, $productId, $daudzums);
+            $plauktsId = adminAtrastVaiIzveidotPlauktu($pdo, $plauktaNosaukums);
+
+            if (adminPlauktsJauIzmantots($pdo, $plauktsId)) {
+                throw new RuntimeException('Šis plaukts jau ir izmantots. Izvēlies citu plauktu.');
+            }
+
+            $stmt = $pdo->prepare('INSERT INTO preces_plauktos (product_id, plaukts_id, daudzums, piezime) VALUES (?, ?, ?, ?)');
+            $stmt->execute([$productId, $plauktsId, $daudzums, $piezime]);
+            $teksts = 'Prece piesaistīta plauktam.';
+        }
+
+        if ($action === 'update_mapping') {
+            $id = (int) ($_POST['id'] ?? 0);
+            $plauktaNosaukums = (string) ($_POST['plaukts'] ?? '');
+            $daudzums = max(0, (int) ($_POST['daudzums'] ?? 0));
+            $piezime = trim($_POST['piezime'] ?? '');
+
+            if ($id <= 0) {
+                throw new RuntimeException('Pārbaudi kārtošanas datus.');
+            }
+
+            $vecieDatiStmt = $pdo->prepare('SELECT product_id, plaukts_id, daudzums, piezime FROM preces_plauktos WHERE id = ? LIMIT 1');
+            $vecieDatiStmt->execute([$id]);
+            $vecieDati = $vecieDatiStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$vecieDati) {
+                throw new RuntimeException('Prece plauktā netika atrasta.');
+            }
+
+            $productId = (int) ($vecieDati['product_id'] ?? 0);
+            $vecaisPlauktsId = (int) ($vecieDati['plaukts_id'] ?? 0);
+            $vecaisDaudzums = (int) ($vecieDati['daudzums'] ?? 0);
+            $vecaPiezime = trim((string) ($vecieDati['piezime'] ?? ''));
+
+            adminParbauditDaudzumu($pdo, $productId, $daudzums);
+            $plauktsId = adminAtrastVaiIzveidotPlauktu($pdo, $plauktaNosaukums);
+
+            if (adminPlauktsJauIzmantots($pdo, $plauktsId, $id)) {
+                throw new RuntimeException('Šis plaukts jau ir izmantots citai precei. Izvēlies citu plauktu.');
+            }
+
+            $stmt = $pdo->prepare('UPDATE preces_plauktos SET plaukts_id = ?, daudzums = ?, piezime = ? WHERE id = ?');
+            $stmt->execute([$plauktsId, $daudzums, $piezime, $id]);
+
+            $mainitsPlaukts = $vecaisPlauktsId !== $plauktsId;
+            $mainitsDaudzums = $vecaisDaudzums !== $daudzums;
+            $mainitaPiezime = $vecaPiezime !== $piezime;
+
+            if ($mainitsDaudzums && $mainitaPiezime) {
+                $teksts = 'Preces daudzums un piezīme nomainīta.';
+            } elseif ($mainitsDaudzums) {
+                $teksts = 'Preces daudzums nomainīts.';
+            } elseif ($mainitaPiezime) {
+                $teksts = 'Preces piezīme nomainīta.';
+            } elseif ($mainitsPlaukts) {
+                $teksts = 'Preces atrašanās vieta atjaunota.';
+            } else {
+                $teksts = 'Izmaiņas saglabātas.';
+            }
+        }
+
+        if ($teksts === '') {
+            throw new RuntimeException('Nezināma darbība. Mēģini vēlreiz.');
+        }
+    } catch (Throwable $e) {
+        $tips = 'kluda';
+        $teksts = $e->getMessage();
+    }
+
+    adminNovirzitArZinu('kartosana', $tips, $teksts);
+}
+
 try {
     $lomuVaicajums = $pdo->query('SELECT id, name FROM roles ORDER BY id ASC');
     $visasLomas = $lomuVaicajums->fetchAll();
@@ -77,7 +248,7 @@ try {
 try {
     $kartesanasVaicajums = $pdo->query(
         'SELECT pp.id, pp.product_id, pp.plaukts_id, pp.daudzums, pp.piezime,
-                p.name AS preces_nosaukums, pl.nosaukums AS plaukts_nosaukums
+                p.name AS preces_nosaukums, p.quantity AS daudzums_kopa, pl.nosaukums AS plaukts_nosaukums
          FROM preces_plauktos pp
          INNER JOIN products p ON p.id = pp.product_id
          INNER JOIN plaukti pl ON pl.id = pp.plaukts_id
@@ -97,7 +268,7 @@ try {
     }
     $plaukti = array_values($plauktuSaraksts);
 } catch (Throwable $e) {
-    $kartosanasKluda = 'Neizdevās ielādēt kartošanas datus.';
+    $kartosanasKluda = 'Neizdevās ielādēt kārtošanas datus.';
 }
 ?>
 <!DOCTYPE html>
@@ -129,7 +300,7 @@ try {
                     <li><a class="active" href="#lietotaji"><i class="fa fa-user" aria-hidden="true"></i>Lietotāji</a></li>
                     <li><a href="#pievienot-preces"><i class="fa fa-plus" aria-hidden="true"></i>Pievienot preces</a></li>
                     <li><a href="#rediget-preces"><i class="fa fa-edit" aria-hidden="true"></i>Rediģēt preces</a></li>
-                    <li><a href="#kartosana"><i class="fa fa-th" aria-hidden="true"></i>Kartošana</a></li>
+                    <li><a href="#kartosana"><i class="fa fa-exchange" aria-hidden="true"></i>Kārtošana</a></li>
                     <li><a href="#atskaites"><i class="fa fa-line-chart" aria-hidden="true"></i>Atskaites</a></li>
                 </ul>
             </nav>
@@ -298,31 +469,35 @@ try {
             </article>
 
             <article id="kartosana" class="admin-panel" data-panel>
-                <h2>Kartošana - Preces plauktos</h2>
-                <p>Piešķir preces plauktiem un pārvaldi to izvietojumu.</p>
+                <h2>Kārtošana</h2>
+                <p>Šeit admin var piesaistīt preces plauktiem un labot esošo kārtošanu. Dzēšanas iespēja šajā sadaļā nav pieejama.</p>
 
                 <?php if ($kartosanasKluda !== null): ?>
                     <p class="admin-kluda"><?php echo htmlspecialchars($kartosanasKluda, ENT_QUOTES, 'UTF-8'); ?></p>
                 <?php else: ?>
                     <div class="admin-tabula-wrap">
                         <h3>Piesaistīt preci plauktam</h3>
-                        <form method="post" action="../Includes/admin_inc/admin_piesaistiit_plauktu.php" class="admin-form">
+                        <form class="kartotajs-form kartotajs-form-4" method="post">
+                            <input type="hidden" name="action" value="add_mapping">
                             <div>
                                 <label>Prece</label>
                                 <select name="product_id" required>
-                                    <option value="">-- Izvēlies preci --</option>
+                                    <option value="">Izvēlies preci</option>
                                     <?php foreach ($products as $product): ?>
-                                        <option value="<?php echo (int) $product['id']; ?>" data-max="<?php echo max(0, (int) ($product['quantity'] ?? 0)); ?>"><?php echo htmlspecialchars((string) ($product['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?> (pieejams: <?php echo max(0, (int) ($product['quantity'] ?? 0)); ?>)</option>
+                                        <option value="<?php echo (int) $product['id']; ?>" data-max="<?php echo max(0, (int) ($product['quantity'] ?? 0)); ?>">
+                                            <?php echo htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8'); ?>
+                                            (kopā: <?php echo max(0, (int) ($product['quantity'] ?? 0)); ?>)
+                                        </option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
                             <div>
-                                <label>Plaukts (A-F, 1-30)</label>
-                                <input type="text" name="plaukts" placeholder="Piemēram: A-1 vai F-30" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30" required>
+                                <label>Plaukts</label>
+                                <input class="plaukta-ievade" type="text" name="plaukts" placeholder="Piemēram: A-12" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" required>
                             </div>
                             <div>
                                 <label>Daudzums</label>
-                                <input type="number" name="daudzums" min="0" max="0" value="0">
+                                <input type="number" name="daudzums" min="0" max="0" value="0" required>
                             </div>
                             <div>
                                 <label>Piezīme</label>
@@ -337,7 +512,7 @@ try {
                         <?php if (!$kartesanas): ?>
                             <p>Vēl nav piesaistīta neviena prece.</p>
                         <?php else: ?>
-                            <table class="admin-tabula">
+                            <table class="admin-tabula kartotajs-tabula">
                                 <thead>
                                     <tr>
                                         <th>Prece</th>
@@ -351,14 +526,23 @@ try {
                                     <?php foreach ($kartesanas as $rinda): ?>
                                         <tr>
                                             <td><?php echo htmlspecialchars((string) $rinda['preces_nosaukums'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                            <td><?php echo htmlspecialchars((string) $rinda['plaukts_nosaukums'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                            <td><?php echo (int) $rinda['daudzums']; ?></td>
-                                            <td><?php echo htmlspecialchars((string) ($rinda['piezime'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td>
-                                                <form method="post" action="../Includes/admin_inc/admin_dzelst_kartesanu.php" style="display:inline;" onsubmit="return confirm('Dzēst šo piesaisti?');">
+                                                <input class="kartotajs-table-input plaukta-ievade" type="text" name="plaukts" value="<?php echo htmlspecialchars((string) $rinda['plaukts_nosaukums'], ENT_QUOTES, 'UTF-8'); ?>" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" form="admin-kartosana-update-<?php echo (int) $rinda['id']; ?>" required>
+                                            </td>
+                                            <td>
+                                                <input class="kartotajs-table-input kartotajs-daudzums-input" type="number" name="daudzums" min="0" max="<?php echo (int) ($rinda['daudzums_kopa'] ?? 0); ?>" title="Maksimālais daudzums: <?php echo (int) ($rinda['daudzums_kopa'] ?? 0); ?>" value="<?php echo (int) $rinda['daudzums']; ?>" form="admin-kartosana-update-<?php echo (int) $rinda['id']; ?>" required>
+                                            </td>
+                                            <td>
+                                                <input class="kartotajs-table-input" type="text" name="piezime" value="<?php echo htmlspecialchars((string) ($rinda['piezime'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" placeholder="Piezīme" form="admin-kartosana-update-<?php echo (int) $rinda['id']; ?>">
+                                            </td>
+                                            <td>
+                                                <form id="admin-kartosana-update-<?php echo (int) $rinda['id']; ?>" method="post">
+                                                    <input type="hidden" name="action" value="update_mapping">
                                                     <input type="hidden" name="id" value="<?php echo (int) $rinda['id']; ?>">
-                                                    <button class="admin-poga admin-poga-dzest" type="submit"><i class="fa fa-trash"></i>Dzēst</button>
                                                 </form>
+                                                <div class="kartotajs-darbibas">
+                                                    <button class="admin-poga admin-poga-mainit" type="submit" form="admin-kartosana-update-<?php echo (int) $rinda['id']; ?>">Saglabāt</button>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -483,7 +667,7 @@ try {
                 });
             }
 
-            document.querySelectorAll('input[name="shelf_location"]').forEach((input) => {
+            document.querySelectorAll('input[name="shelf_location"], input[name="plaukts"]').forEach((input) => {
                 input.addEventListener('input', () => {
                     input.value = normalizeShelfLocation(input.value);
                     validateShelfInput(input);
@@ -497,7 +681,7 @@ try {
                 validateShelfInput(input);
             });
 
-            const adminKartosanaForma = document.querySelector('form[action="../Includes/admin_inc/admin_piesaistiit_plauktu.php"]');
+            const adminKartosanaForma = document.querySelector('#kartosana form.kartotajs-form');
             const adminProductSelect = adminKartosanaForma ? adminKartosanaForma.querySelector('select[name="product_id"]') : null;
             const adminDaudzumsInput = adminKartosanaForma ? adminKartosanaForma.querySelector('input[name="daudzums"]') : null;
 
