@@ -2,6 +2,16 @@
 session_start();
 require_once __DIR__ . '/../dbh.inc.php';
 
+function novirzitUzLoginArKludu(string $error): void
+{
+    header('Location: ../../Skats/log_reg_skats/login.php?error=' . urlencode($error));
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    novirzitUzLoginArKludu('wrong');
+}
+
 function novirzitPecLomas(?int $roleId, ?string $roleName = null): void
 {
     $normalizetaLoma = strtolower(trim((string) $roleName));
@@ -30,11 +40,11 @@ $lietotajvards = trim($lietotajvardsRaw);
 $parole = $_POST['parole'] ?? '';
 
 if (preg_match('/\s/', $lietotajvardsRaw) === 1 || preg_match('/\s/', $parole) === 1) {
-    die('Nepareizs lietotajvards vai parole.');
+    novirzitUzLoginArKludu('wrong');
 }
 
 if ($lietotajvards === '' || $parole === '') {
-    die('Nepareizs lietotajvards vai parole.');
+    novirzitUzLoginArKludu('empty');
 }
 
 $sql = 'SELECT u.id, u.username, u.password, u.role_id, r.name AS role_name
@@ -44,8 +54,13 @@ $sql = 'SELECT u.id, u.username, u.password, u.role_id, r.name AS role_name
         LIMIT 1';
 
 $stmt = $pdo->prepare($sql);
-$stmt->execute([':username' => $lietotajvards]);
-$row = $stmt->fetch();
+
+try {
+    $stmt->execute([':username' => $lietotajvards]);
+    $row = $stmt->fetch();
+} catch (Throwable $e) {
+    novirzitUzLoginArKludu('wrong');
+}
 
 $irParoleDeriga = false;
 
@@ -65,7 +80,7 @@ if ($row) {
 }
 
 if (!$row || !$irParoleDeriga) {
-    die('Nepareizs lietotajvards vai parole.');
+    novirzitUzLoginArKludu('wrong');
 }
 
 $_SESSION['user_id'] = (int) $row['id'];

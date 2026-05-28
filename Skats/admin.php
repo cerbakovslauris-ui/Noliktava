@@ -23,7 +23,12 @@ $atskaite = [
     'kop_atlikums' => 0,
     'kop_pasutijumi' => 0,
     'jauni_pasutijumi' => 0,
+    'pienemti_pasutijumi' => 0,
+    'izpilditi_pasutijumi' => 0,
+    'aktivie_pasutijumi' => 0,
     'atcelti_pasutijumi' => 0,
+    'aiznemti_plaukti' => 0,
+    'daudzums_plauktos' => 0,
 ];
 
 $flashZina = $_SESSION['admin_flash'] ?? null;
@@ -64,6 +69,8 @@ try {
         "SELECT
             COUNT(*) AS kop_pasutijumi,
             SUM(CASE WHEN status = 'jauns' THEN 1 ELSE 0 END) AS jauni_pasutijumi,
+            SUM(CASE WHEN status = 'pieņemts' THEN 1 ELSE 0 END) AS pienemti_pasutijumi,
+            SUM(CASE WHEN status = 'izpildīts' THEN 1 ELSE 0 END) AS izpilditi_pasutijumi,
             SUM(CASE WHEN status = 'atcelts' THEN 1 ELSE 0 END) AS atcelti_pasutijumi
          FROM orders"
     );
@@ -71,7 +78,10 @@ try {
 
     $atskaite['kop_pasutijumi'] = (int) ($pasutijumuAtskaite['kop_pasutijumi'] ?? 0);
     $atskaite['jauni_pasutijumi'] = (int) ($pasutijumuAtskaite['jauni_pasutijumi'] ?? 0);
+    $atskaite['pienemti_pasutijumi'] = (int) ($pasutijumuAtskaite['pienemti_pasutijumi'] ?? 0);
+    $atskaite['izpilditi_pasutijumi'] = (int) ($pasutijumuAtskaite['izpilditi_pasutijumi'] ?? 0);
     $atskaite['atcelti_pasutijumi'] = (int) ($pasutijumuAtskaite['atcelti_pasutijumi'] ?? 0);
+    $atskaite['aktivie_pasutijumi'] = max(0, $atskaite['kop_pasutijumi'] - $atskaite['atcelti_pasutijumi'] - $atskaite['izpilditi_pasutijumi']);
 } catch (PDOException $e) {
     $atskaitesKluda = 'Neizdevās ielādēt atskaišu datus.';
 }
@@ -113,6 +123,11 @@ try {
         }
     }
     $plaukti = array_values($plauktuSaraksts);
+
+    $atskaite['aiznemti_plaukti'] = count($plaukti);
+    $atskaite['daudzums_plauktos'] = array_sum(array_map(static function (array $rinda): int {
+        return (int) ($rinda['daudzums'] ?? 0);
+    }, $kartesanas));
 } catch (Throwable $e) {
     $kartosanasKluda = 'Neizdevās ielādēt kārtošanas datus.';
 }
@@ -502,8 +517,28 @@ try {
                                     <td><?php echo (int) $atskaite['jauni_pasutijumi']; ?></td>
                                 </tr>
                                 <tr>
+                                    <th>Pieņemti pasūtījumi</th>
+                                    <td><?php echo (int) $atskaite['pienemti_pasutijumi']; ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Izpildīti pasūtījumi</th>
+                                    <td><?php echo (int) $atskaite['izpilditi_pasutijumi']; ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Aktīvie pasūtījumi</th>
+                                    <td><?php echo (int) $atskaite['aktivie_pasutijumi']; ?></td>
+                                </tr>
+                                <tr>
                                     <th>Atcelti pasūtījumi</th>
                                     <td><?php echo (int) $atskaite['atcelti_pasutijumi']; ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Aizņemtie plaukti</th>
+                                    <td><?php echo (int) $atskaite['aiznemti_plaukti']; ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Kopējais daudzums plauktos</th>
+                                    <td><?php echo (int) $atskaite['daudzums_plauktos']; ?></td>
                                 </tr>
                             </tbody>
                         </table>
