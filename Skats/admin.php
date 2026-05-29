@@ -206,9 +206,9 @@ try {
                 <div class="admin-tabula-wrap">
                     <h3>Izveidot lietotāju</h3>
                     <form method="post" action="../Includes/admin_inc/izveidot_user.php" class="admin-form-inline admin-create-user-form">
-                        <input type="text" name="username" placeholder="Lietotājvārds" required>
-                        <input type="password" name="password" placeholder="Parole" pattern="\S+" title="Parolē nedrīkst būt atstarpes" required>
-                        <select name="role_id" aria-label="Izvēlēties lomu" required>
+                        <input type="text" name="username" placeholder="Lietotājvārds">
+                        <input type="password" name="password" placeholder="Parole" pattern="\S+" title="Parolē nedrīkst būt atstarpes">
+                        <select name="role_id" aria-label="Izvēlēties lomu">
                             <option value="">Izvēlies lomu</option>
                             <?php foreach ($visasLomas as $loma): ?>
                                 <option value="<?php echo (int) $loma['id']; ?>"><?php echo htmlspecialchars((string) $loma['name'], ENT_QUOTES, 'UTF-8'); ?></option>
@@ -241,7 +241,7 @@ try {
                                         <td>
                                             <form method="post" action="../Includes/admin_inc/rediget_user.php" class="admin-form-inline admin-user-edit-form">
                                                 <input type="hidden" name="lietotaja_id" value="<?php echo (int) $lietotajs['id']; ?>">
-                                                <input type="text" name="username" value="<?php echo htmlspecialchars((string) $lietotajs['username'], ENT_QUOTES, 'UTF-8'); ?>" required>
+                                                <input type="text" name="username" value="<?php echo htmlspecialchars((string) $lietotajs['username'], ENT_QUOTES, 'UTF-8'); ?>">
                                                 <input type="password" name="jauna_parole" placeholder="Jauna parole (nav obligāta)" pattern="\S*" title="Parolē nedrīkst būt atstarpes">
                                                 <button type="submit" class="admin-poga admin-poga-mainit">Saglabāt kontu</button>
                                             </form>
@@ -283,11 +283,11 @@ try {
                             <tbody>
                                 <tr>
                                     <td><label for="add-name">Nosaukums</label></td>
-                                    <td><input id="add-name" type="text" name="name" required></td>
+                                    <td><input id="add-name" type="text" name="name"></td>
                                 </tr>
                                 <tr>
                                     <td><label for="add-quantity">Daudzums</label></td>
-                                    <td><input id="add-quantity" type="number" name="quantity" min="0" max="10 000 000" value="0" placeholder="Max 10000000" required></td>
+                                    <td><input id="add-quantity" type="number" name="quantity" min="0" max="10 000 000" value="0" placeholder="Max 10000000"></td>
                                 </tr>
                                 <tr>
                                     <td><label for="add-shelf">Plaukta vieta</label></td>
@@ -334,9 +334,9 @@ try {
                                             <div class="admin-darbibas admin-product-actions">
                                                 <form method="post" action="../Includes/admin_inc/edit_produktu.php" class="admin-form-inline admin-product-edit-form">
                                                     <input type="hidden" name="id" value="<?php echo (int) $product['id']; ?>">
-                                                    <input type="text" name="name" value="<?php echo htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8'); ?>" required>
+                                                    <input type="text" name="name" value="<?php echo htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8'); ?>">
                                                     <input type="text" name="description" value="<?php echo htmlspecialchars((string) ($product['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" placeholder="Apraksts">
-                                                    <input type="number" name="quantity" min="0" value="<?php echo (int) $product['quantity']; ?>" required>
+                                                    <input type="number" name="quantity" min="0" value="<?php echo (int) $product['quantity']; ?>">
                                                     <input type="text" name="shelf_location" value="<?php echo htmlspecialchars((string) ($product['shelf_location'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" placeholder="Plaukts" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30">
                                                     <button type="submit" class="admin-poga admin-poga-mainit">Saglabāt</button>
                                                 </form>
@@ -367,7 +367,7 @@ try {
                         <form method="post" action="../Includes/admin_inc/admin_piesaistiit_plauktu.php" class="admin-form">
                             <div>
                                 <label>Prece</label>
-                                <select name="product_id" required>
+                                <select name="product_id">
                                     <option value="">-- Izvēlies preci --</option>
                                     <?php foreach ($products as $product): ?>
                                         <option value="<?php echo (int) $product['id']; ?>" data-max="<?php echo max(0, (int) ($product['quantity'] ?? 0)); ?>"><?php echo htmlspecialchars((string) ($product['name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?> (pieejams: <?php echo max(0, (int) ($product['quantity'] ?? 0)); ?>)</option>
@@ -376,7 +376,7 @@ try {
                             </div>
                             <div>
                                 <label>Plaukts (A-F, 1-30)</label>
-                                <input type="text" name="plaukts" maxlength="4" placeholder="Piemēram: A-1 vai F-30" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30" required>
+                                <input type="text" name="plaukts" maxlength="4" placeholder="Piemēram: A-1 vai F-30" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30">
                             </div>
                             <div>
                                 <label>Daudzums</label>
@@ -410,7 +410,7 @@ try {
                                         <tr>
                                             <td><?php echo htmlspecialchars((string) $rinda['preces_nosaukums'], ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td>
-                                                <input type="text" name="plaukts" value="<?php echo htmlspecialchars((string) $rinda['plaukts_nosaukums'], ENT_QUOTES, 'UTF-8'); ?>" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" form="admin-kartosana-update-<?php echo (int) $rinda['id']; ?>" required>
+                                                <input type="text" name="plaukts" value="<?php echo htmlspecialchars((string) $rinda['plaukts_nosaukums'], ENT_QUOTES, 'UTF-8'); ?>" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" form="admin-kartosana-update-<?php echo (int) $rinda['id']; ?>">
                                             </td>
                                             <td>
                                                 <input type="number" name="daudzums" min="0" max="<?php echo max(0, (int) ($rinda['daudzums_kopa'] ?? 0)); ?>" value="<?php echo (int) $rinda['daudzums']; ?>" form="admin-kartosana-update-<?php echo (int) $rinda['id']; ?>">
@@ -478,7 +478,7 @@ try {
                     <form method="post" action="../Includes/admin_inc/add_pasutijums.php" class="admin-form">
                         <div>
                             <label>Prece</label>
-                            <select name="product_id" required>
+                            <select name="product_id">
                                 <option value="">Izvēlies preci</option>
                                 <?php foreach ($products as $product): ?>
                                     <?php $pieejamaisDaudzums = max(0, (int) ($product['quantity'] ?? 0)); ?>
@@ -490,7 +490,7 @@ try {
                         </div>
                         <div>
                             <label>Daudzums</label>
-                            <input type="number" name="quantity" min="1" step="1" required>
+                            <input type="number" name="quantity" min="1" step="1">
                         </div>
                         <button type="submit" class="admin-poga admin-poga-mainit">Izveidot pasūtījumu</button>
                     </form>

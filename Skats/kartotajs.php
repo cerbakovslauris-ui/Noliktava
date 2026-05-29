@@ -205,70 +205,6 @@ function dzestTuksuPlauktu(PDO $pdo, int $plauktsId): void
     }
 }
 
-function pirmaisBrivaisPlaukts(PDO $pdo): string
-{
-    $aiznemtie = [];
-
-    $stmt = $pdo->query('SELECT pl.nosaukums FROM preces_plauktos pp INNER JOIN plaukti pl ON pl.id = pp.plaukts_id');
-    $nosaukumi = $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
-
-    foreach ($nosaukumi as $nosaukums) {
-        try {
-            $aiznemtie[normalizePlauktaNosaukums((string) $nosaukums)] = true;
-        } catch (Throwable $e) {
-            // Ignorējam bojātus vēsturiskus ierakstus, lai sinhronizācija turpinās.
-        }
-    }
-
-    foreach (range('A', 'F') as $burts) {
-        for ($numurs = 1; $numurs <= 30; $numurs++) {
-            $nosaukums = $burts . '-' . $numurs;
-            if (!isset($aiznemtie[$nosaukums])) {
-                return $nosaukums;
-            }
-        }
-    }
-
-    throw new RuntimeException('Nav brīvu plauktu diapazonā A-1 līdz F-30.');
-}
-
-function pieskirtPlauktusNeiekartotamPrecem(PDO $pdo, string $produktuTabula, bool $irShelfLocationKolonna, string $produktaDaudzumaKolonna = 'quantity'): int
-{
-    $daudzumaKolonnaSql = $produktaDaudzumaKolonna !== '' ? 'p.' . $produktaDaudzumaKolonna : '0';
-
-    $sql = 'SELECT p.id AS product_id, ' . $daudzumaKolonnaSql . ' AS product_daudzums
-            FROM ' . $produktuTabula . ' p
-            LEFT JOIN preces_plauktos pp ON pp.product_id = p.id
-            WHERE pp.id IS NULL
-            ORDER BY p.id ASC';
-    $rindas = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-
-    $pievienoti = 0;
-
-    foreach ($rindas as $rinda) {
-        $productId = (int) ($rinda['product_id'] ?? 0);
-        if ($productId <= 0) {
-            continue;
-        }
-
-        $plauktaNosaukums = pirmaisBrivaisPlaukts($pdo);
-        $plauktsId = atrastVaiIzveidotPlauktu($pdo, $plauktaNosaukums);
-        $daudzums = max(0, (int) ($rinda['product_daudzums'] ?? 0));
-
-        $insert = $pdo->prepare('INSERT INTO preces_plauktos (product_id, plaukts_id, daudzums, piezime) VALUES (?, ?, ?, ?)');
-        $insert->execute([$productId, $plauktsId, $daudzums, 'Automātiski piešķirts']);
-
-        if ($irShelfLocationKolonna) {
-            $update = $pdo->prepare('UPDATE ' . $produktuTabula . ' SET shelf_location = ? WHERE id = ?');
-            $update->execute([$plauktaNosaukums, $productId]);
-        }
-
-        $pievienoti++;
-    }
-
-    return $pievienoti;
-}
-
 function sinhronizetDarbiniekaPlauktuIevadi(PDO $pdo, string $produktuTabula, bool $irShelfLocationKolonna, string $produktaDaudzumaKolonna = 'quantity'): int
 {
     if (!$irShelfLocationKolonna) {
@@ -328,7 +264,6 @@ function sakoptKartotajaDatus(PDO $pdo, ?string $produktuTabula = null): void
             try {
                 $pdo->exec('DELETE FROM preces_plauktos WHERE product_id NOT IN (SELECT id FROM ' . $produktuTabula . ')');
             } catch (Throwable $e2) {
-                // Ja datu bāze neatbalsta šo sintaksi, vienkārši turpinām bez kļūdas.
             }
         }
     }
@@ -667,7 +602,7 @@ if (hasPdo()) {
                             <input type="hidden" name="action" value="add_mapping">
                             <div>
                                 <label>Prece</label>
-                                <select name="product_id" id="kartotajs-product-select" required>
+                                <select name="product_id" id="kartotajs-product-select">
                                     <option value="">Izvēlies preci</option>
                                     <?php foreach ($preces as $prece): ?>
                                         <option value="<?php echo e($prece['id']); ?>" data-max="<?php echo e($prece['daudzums_kopa'] ?? 0); ?>"><?php echo e($prece['nosaukums']); ?> (pieejams: <?php echo e($prece['daudzums_kopa'] ?? 0); ?>)</option>
@@ -676,7 +611,7 @@ if (hasPdo()) {
                             </div>
                             <div>
                                 <label>Plaukts</label>
-                                <input class="plaukta-ievade" type="text" name="plaukts" placeholder="Piemēram: A-12" data-kartesanas-id="0" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" required>
+                                <input class="plaukta-ievade" type="text" name="plaukts" placeholder="Piemēram: A-12" data-kartesanas-id="0" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30">
                             </div>
                             <div>
                                 <label>Daudzums</label>
@@ -710,7 +645,7 @@ if (hasPdo()) {
                                         <tr>
                                             <td><?php echo e($rinda['preces_nosaukums']); ?></td>
                                             <td>
-                                                <input class="kartotajs-table-input plaukta-ievade" type="text" name="plaukts" value="<?php echo e($rinda['plaukts_nosaukums']); ?>" data-kartesanas-id="<?php echo e($rinda['id']); ?>" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" form="kartotajs-update-<?php echo e($rinda['id']); ?>" required>
+                                                <input class="kartotajs-table-input plaukta-ievade" type="text" name="plaukts" value="<?php echo e($rinda['plaukts_nosaukums']); ?>" data-kartesanas-id="<?php echo e($rinda['id']); ?>" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30" form="kartotajs-update-<?php echo e($rinda['id']); ?>">
                                             </td>
                                             <td>
                                                 <input class="kartotajs-table-input kartotajs-daudzums-input" type="number" name="daudzums" min="0" max="<?php echo e($rinda['daudzums_kopa'] ?? 0); ?>" title="Maksimālais daudzums: <?php echo e($rinda['daudzums_kopa'] ?? 0); ?>" value="<?php echo e($rinda['daudzums']); ?>" form="kartotajs-update-<?php echo e($rinda['id']); ?>">

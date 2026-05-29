@@ -430,7 +430,7 @@ $productReport = $productReportStmt->fetchAll(PDO::FETCH_ASSOC);
                         <div class="forma-rinda">
                             <div>
                                 <label>Prece</label>
-                                <select name="product_id" required>
+                                <select name="product_id">
                                     <option value="">Izvēlies preci</option>
                                     <?php foreach ($products as $product): ?>
                                         <option value="<?php echo (int)$product['id']; ?>" <?php echo (int)$product['quantity'] <= 0 ? 'disabled' : ''; ?>>
@@ -442,7 +442,7 @@ $productReport = $productReportStmt->fetchAll(PDO::FETCH_ASSOC);
                             </div>
                             <div>
                                 <label>Daudzums</label>
-                                <input type="number" name="quantity" min="1" required>
+                                <input type="number" name="quantity" min="1">
                             </div>
                         </div>
                         <button class="poga" type="submit">Izveidot pasūtījumu</button>
@@ -515,11 +515,11 @@ $productReport = $productReportStmt->fetchAll(PDO::FETCH_ASSOC);
                         <div class="forma-rinda">
                             <div>
                                 <label>Nosaukums</label>
-                                <input type="text" name="name" required>
+                                <input type="text" name="name">
                             </div>
                             <div>
                                 <label>Daudzums</label>
-                                <input type="number" name="quantity" min="0" max="10000000" value="0" placeholder="Max 10000000" required>
+                                <input type="number" name="quantity" min="0" max="10000000" value="0" placeholder="Max 10000000">
                             </div>
                             <div>
                                 <label>Plaukta vieta</label>
@@ -555,9 +555,9 @@ $productReport = $productReportStmt->fetchAll(PDO::FETCH_ASSOC);
                                             <form class="edit-form" method="post">
                                                 <input type="hidden" name="action" value="edit_product">
                                                 <input type="hidden" name="id" value="<?php echo (int)$product['id']; ?>">
-                                                <input type="text" name="name" value="<?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>" required>
+                                                <input type="text" name="name" value="<?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>">
                                                 <input type="text" name="description" value="<?php echo htmlspecialchars((string)$product['description'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Apraksts">
-                                                <input class="small-input" type="number" name="quantity" min="0" value="<?php echo (int)$product['quantity']; ?>" required>
+                                                <input class="small-input" type="number" name="quantity" min="0" value="<?php echo (int)$product['quantity']; ?>">
                                                 <input type="text" name="shelf_location" value="<?php echo htmlspecialchars((string)$product['shelf_location'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Plaukts" pattern="[A-Fa-f]-?([1-9]|[12][0-9]|30)" title="Atļauts tikai A-F un 1-30, piemēram, A-1 vai F-30">
                                                 <button class="poga" type="submit">Saglabāt</button>
                                             </form>
